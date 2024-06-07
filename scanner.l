@@ -1,18 +1,11 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "y.tab.h"
 
 char strbuffer[200];
 int line_no = 1;
 void yyerror(const char *s);
-
-union {
-  unsigned int integer;
-  double real;
-  char string[200];
-  char character;
-  int boolean;
-} yylval;
 
 #define T_VAR                0
 #define T_VAL                1
@@ -70,6 +63,8 @@ REAL        {INT}+\.{INT}+
 VARIABLE    [_a-zA-Z][_0-9a-zA-Z]*
 W           [ \t]+
 ASCII       [ -~]
+TERMINAL    (";"|","|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"=")
+
 %%
 
 "//"                { BEGIN S_COMMENT; }
@@ -102,11 +97,11 @@ ASCII       [ -~]
 '\\.'                               { printf("single-quote: %d, %c\n", T_CHAR_CONST, yytext[2]); } 
 '[^']'                              { printf("single-quote: %d, %c\n", T_CHAR_CONST, yytext[1]); }
 
-"var"               { printf("keyword: %d, %s\n", T_VAR, yytext); }
+"var"               { return (RESERVED); }
 "val"               { printf("keyword: %d, %s\n", T_VAL, yytext); }
 "bool"              { printf("keyword: %d, %s\n", T_BOOL, yytext); }
 "char"              { printf("keyword: %d, %s\n", T_CHAR, yytext); }
-"int"               { printf("keyword: %d, %s\n", T_INT, yytext); }
+"int"               { sscanf(yytext, "%s", yylval.string); return (TYPE); }
 "real"              { printf("keyword: %d, %s\n", T_REAL, yytext); }
 "true"              { printf("keyword: %d, %s\n", T_TRUE, yytext); }
 "false"             { printf("keyword: %d, %s\n", T_FALSE, yytext); }
@@ -118,32 +113,15 @@ ASCII       [ -~]
 "do"                { printf("keyword: %d, %s\n", T_DO, yytext); }
 "switch"            { printf("keyword: %d, %s\n", T_SWITCH, yytext); }
 "case"              { printf("keyword: %d, %s\n", T_CASE, yytext); }
-"fun"               { printf("keyword: %d, %s\n", T_FUN, yytext); }
+"fun"               { return (RESERVED); }
 "ret"               { printf("keyword: %d, %s\n", T_RET, yytext); }
 
-"("                 { printf("LEFT_PARENTHESE: %d, %s\n", T_LEFT_PARENTHESE, yytext); }
-")"                 { printf("RIGHT_PARENTHESE: %d, %s\n", T_RIGHT_PARENTHESE, yytext); }
-"["                 { printf("LEFT_BRACKET: %d, %s\n", T_LEFT_BRACKET, yytext); }
-"]"                 { printf("RIGHT_BRACKET: %d, %s\n", T_RIGHT_BRACKET, yytext); }
-"{"                 { printf("LEFT_BRACE: %d, %s\n", T_LEFT_BRACE, yytext); }
-"}"                 { printf("RIGHT_BRACE: %d, %s\n", T_RIGHT_BRACE, yytext); }
-
-"+"                 { printf("OPERATOR: %d, %s\n", T_OPERATOR, yytext); }
-"-"                 { printf("MINUS_SIGN: %d, %s\n", T_MINUS, yytext); }
-"*"                 { printf("OPERATOR: %d, %s\n", T_OPERATOR, yytext); }
-"/"                 { printf("OPERATOR: %d, %s\n", T_OPERATOR, yytext); }
-
-"="                 { printf("ASIGN: %d, %s\n", T_ASIGN, yytext); }
 "=="                { printf("EQUAL_CMP: %d, %s\n", T_EQUAL_CMP, yytext); }
 "!="                { printf("INEQUAL_CMP: %d, %s\n", T_INEQUAL_CMP, yytext); }
 ">"                 { printf("LARGER_THAN: %d, %s\n", T_LARGER_THAN, yytext); }
 "<"                 { printf("SMALLER_THAN: %d, %s\n", T_SMALLER_THAN, yytext); }
 ">="                { printf("LARGER_EQUAL: %d, %s\n", T_LARGER_EQUAL, yytext); }
 "<="                { printf("SMALLER_EQUAL: %d, %s\n", T_SMALLER_EQUAL, yytext); }
-
-","                 { printf("COMMA: %d, %s\n", T_COMMA, yytext); }
-":"                 { printf("COLON: %d, %s\n", T_COLON, yytext); }
-";"                 { printf("SEMI: %d, %s\n", T_SEMI, yytext); }
 
 "\\\\"              { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
 "\\n"               { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
@@ -152,9 +130,10 @@ ASCII       [ -~]
 "\\\""              { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
 "\\\?"              { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
 
+{TERMINAL}          { return (yytext[0]); }
 {INT}               { printf("INT_CONST: %d, %s\n", T_INT_CONST, yytext); }
 {REAL}              { printf("REAL_CONST: %d, %s\n", T_REAL_CONST, yytext); }
-{VARIABLE}          { printf("ID: %d, %s\n", T_ID, yytext); }
+{VARIABLE}          { sscanf(yytext, "%s", yylval.string); return (VAR); }
 
 \n                  { line_no++; }
 {W}                 { /* Ignore whitespace */ }
@@ -163,28 +142,6 @@ ASCII       [ -~]
 
 %%
 
-void yyerror(const char *s) {
-    printf("line %d: %s at %s\n", line_no, s, yytext);
-}
-
 int yywrap(void){
     return 1;
-}
-
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        printf("Usage: %s <filename>\n", argv[0]);
-        return -1;
-    }
-
-    const char *sFile = argv[1];
-    FILE* fp = fopen(sFile, "r");
-    if (fp == NULL){
-        printf("cannot open %s\n", sFile);
-        return -1;
-    }
-    yyin = fp;
-    yylex();
-
-    return 0;
 }
