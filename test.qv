@@ -1,3 +1,4 @@
 fun main () {
-	var i: int;
+	var i: int = 10101;
+    val k: int = 10;
 }

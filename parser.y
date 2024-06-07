@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "type.h"
 extern int yylex();
 extern char* yytext;
 void yyerror(const char *s);
@@ -9,53 +10,42 @@ void yyerror(const char *s);
 
 %}
 %union {
-  unsigned int integer;
-  double real;
-  char string[200];
-  char character;
-  int boolean;
+    int integer;
+    double real;
+    char string[200];
+    char character;
+    int boolean;
 };
 
 
-%token RESERVED VAR NUMBER
-%token TYPE
-%token INT_CONST
-
+%token <string> VAR TYPE
+%token <integer> T_INT RESERVED NUMBER
+/* %token T_INT */
+/* 先乘除後加減，且定義由左到右運算 */
 %left '+' '-'
-
-%type <string> VAR
-%type <string> TYPE
+%left '*' '/'
 
 %%
 prog:
-    stmts
-    ;
-
-stmts:
     RESERVED VAR '(' ')' '{' {  }
         stmts
     '}'
-    | stmt
+    ;
+
+stmts:
+    /* empty string */
+    | stmt ';' stmts
     ;
 
 stmt:
-    RESERVED VAR ':' TYPE ';' { printf("var = %s, type = %s\n", $2, $4); }
-    | VAR '=' INT_CONST 
+    declaration
     ;
-// input:
-//     | input line
-//     ;
 
-// line:
-//     '\n'
-//     | exp '\n'   { printf("Result: %d\n", $1); }
-//     ;
 
-// exp:
-//     NUMBER         { $$ = atoi(YYStext); }
-//     | exp '+' exp  { $$ = $1 + $3; }
-//     | exp '-' exp  { $$ = $1 - $3; }
-//     ;
+declaration:
+    RESERVED VAR ':' TYPE { printf("%s : %s\n", $2, $4); }
+    | RESERVED VAR ':' TYPE '=' T_INT { printf("%s : %s = %d\n", $2, $4, $6); }
+    ; 
 
 %%
 
