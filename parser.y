@@ -33,12 +33,11 @@ int symbolTableTop = 0;
 %token MULTIPLY
 
 %type <sval> program function block declarations declaration type statements statement
-%type <node> expression
-%type <node> term
+%type <node> expression term factor
 /* %token T_INT */
 /* 先乘除後加減，且定義由左到右運算 */
-%left '+' '-'
-%left '*' '/'
+/* %left '+' '-'
+%left '*' '/' */
 
 %%
 program:
@@ -78,9 +77,10 @@ declarations:
     ;
 
 declaration:
+    /* 	var area: real = radius + radius - pi; */
     VAR IDENTIFIER ':' type '=' expression ';'
     {
-        printf("declaration1 %s\n", $4);
+        // printf("declaration1 %s\n", $4);
         $2.type = strdup($4);
         // TODO: symbol table
         addSymbolTable($2.sval, $2.type);
@@ -136,7 +136,7 @@ statement:
     |
     PRINT '(' expression ')' ';'
     {
-        // printf( expression );
+        // printf("expression\n");
         char buffer[256];
         if (strcmp($3.type, "int") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
@@ -161,7 +161,9 @@ expression:
     }
     |
     expression '+' term
-    {
+    {  
+        // TODO: maintain the coercion
+        // printf("+\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s + %s", $1.sval, $3.sval);
         $$ = (struct Node){strdup(buffer), $1.type};
@@ -169,28 +171,57 @@ expression:
     |
     expression '-' term
     {
+        // TODO: maintain the coercion
+        // printf("-\n");
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s + %s", $1.sval, $3.sval);
+        snprintf(buffer, sizeof(buffer), "%s - %s", $1.sval, $3.sval);
         $$ = (struct Node){strdup(buffer), $1.type};
+        // printf("buffer => %s, type => %s\n", buffer, $1.type);
     }
-    /* |
-    expression MULTIPLY term
-    {
-
-    } */
     ;
 
 term:
+    term '*' factor
+    {
+        // printf("*\n");
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s * %s", $1.sval, $3.sval);
+        $$ = (struct Node){strdup(buffer), $1.type};
+    }
+    |
+    term '/' factor
+    {
+        // printf("/\n");
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s / %s", $1.sval, $3.sval);
+        $$ = (struct Node){strdup(buffer), $1.type};
+    }
+    |
+    factor
+    {
+        $$ = (struct Node){$1.sval, $1.type};
+    }
+    ;
+
+factor:
+    '(' expression ')'
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "( %s )", $2.sval);
+        $$ = (struct Node){strdup(buffer), $2.type};
+    }
+    |
     IDENTIFIER
     {
-        printf("term IDENTIFIER\n");
+        // printf("id => %s\n", $1.sval);
         $$ = (struct Node){$1.sval, searchType($1.sval)};
-        printf("done\n");
+        // printf("done\n");
     }
     |
     NUMBER
     {
-        printf("type = %s\n", $1.type);
+        // printf("num => %s\n", $1.sval);
+        // printf("type = %s\n", $1.type);
         $$ = (struct Node){$1.sval, $1.type};
     }
     ;

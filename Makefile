@@ -19,6 +19,10 @@ OUTPUT = syntax_analyzer
 # Test input file
 TEST_INPUT ?= test_input.txt
 
+# Test C file
+TEST_C_FILE = checkResult.c
+TEST_C_OUTPUT = checkResult
+
 .PHONY: all clean test
 
 all: $(OUTPUT)
@@ -34,6 +38,10 @@ $(FLEX_C_FILE): $(FLEX_FILE)
 
 test: $(BISON_C_FILE) $(FLEX_C_FILE) $(OUTPUT)
 	./$(OUTPUT) < $(TEST_INPUT)
+
+testC: $(TEST_C_FILE)
+	$(CC) -o $(TEST_C_OUTPUT) $(TEST_C_FILE)
+	./$(TEST_C_OUTPUT)
 
 clean:
 	rm -f $(OUTPUT) $(BISON_C_FILE) $(BISON_H_FILE) $(FLEX_C_FILE)
