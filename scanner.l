@@ -16,7 +16,7 @@ void yyerror(const char *s);
 
 INT         [0-9]+
 REAL        {INT}+\.{INT}+
-VARIABLE    [_a-zA-Z][_0-9a-zA-Z]*
+IDENTIFIER    [_a-zA-Z][_0-9a-zA-Z]*
 W           [ \t]+
 ASCII       [ -~]
 TERMINAL    (";"|","|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"=")
@@ -35,7 +35,7 @@ TERMINAL    (";"|","|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"=")
 "*/"                { yyerror("Invalid character"); yyterminate(); }
 
 ["]                     { BEGIN STRINGS; strbuffer[0] = '\0'; printf("dq-String: %d, ", T_STRING); }
-<STRINGS>["]            { BEGIN 0; strcpy(yylval.string, strbuffer); printf("%s\n", yylval.string); }
+<STRINGS>["]            { BEGIN 0; strcpy(yylval.sval, strbuffer); return (STRING_LITERAL); }
 <STRINGS>[\\][\\]        { strcat(strbuffer, "\\"); }
 <STRINGS>[\\][n]        { strcat(strbuffer, "\n"); }
 <STRINGS>[\\][t]        { strcat(strbuffer, "\t"); }
@@ -53,12 +53,12 @@ TERMINAL    (";"|","|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"=")
 '\\.'                               { printf("single-quote: %d, %c\n", T_CHAR_CONST, yytext[2]); } 
 '[^']'                              { printf("single-quote: %d, %c\n", T_CHAR_CONST, yytext[1]); }
 
-"var"               { yylval.integer = T_VAR; return (RESERVED); }
-"val"               { yylval.integer = T_VAL; return (RESERVED); }
+"var"               { return (VAR); }
+"val"               { return (VAL); }
 "bool"              { printf("keyword: %d, %s\n", T_BOOL, yytext); }
 "char"              { printf("keyword: %d, %s\n", T_CHAR, yytext); }
-"int"               { sscanf(yytext, "%s", yylval.string); return (TYPE); }
-"real"              { printf("keyword: %d, %s\n", T_REAL, yytext); }
+"int"               { return (INT); }
+"real"              { return (REAL); }
 "true"              { printf("keyword: %d, %s\n", T_TRUE, yytext); }
 "false"             { printf("keyword: %d, %s\n", T_FALSE, yytext); }
 "class"             { printf("keyword: %d, %s\n", T_CLASS, yytext); }
@@ -69,9 +69,10 @@ TERMINAL    (";"|","|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"=")
 "do"                { printf("keyword: %d, %s\n", T_DO, yytext); }
 "switch"            { printf("keyword: %d, %s\n", T_SWITCH, yytext); }
 "case"              { printf("keyword: %d, %s\n", T_CASE, yytext); }
-"fun"               { return (RESERVED); }
+"fun"               { return (FUN); }
+"main"              { return (MAIN); }
 "ret"               { printf("keyword: %d, %s\n", T_RET, yytext); }
-
+"print"             { return (PRINT); }
 "=="                { printf("EQUAL_CMP: %d, %s\n", T_EQUAL_CMP, yytext); }
 "!="                { printf("INEQUAL_CMP: %d, %s\n", T_INEQUAL_CMP, yytext); }
 ">"                 { printf("LARGER_THAN: %d, %s\n", T_LARGER_THAN, yytext); }
@@ -87,9 +88,9 @@ TERMINAL    (";"|","|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"=")
 "\\\?"              { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
 
 {TERMINAL}          { return (yytext[0]); }
-{INT}               { yylval.integer = atoi(yytext); return (T_INT); }
-{REAL}              { printf("REAL_CONST: %d, %s\n", T_REAL_CONST, yytext); }
-{VARIABLE}          { sscanf(yytext, "%s", yylval.string); return (VAR); }
+{INT}               { yylval.fval = atoi(yytext); return (NUMBER); }
+{REAL}              { yylval.fval = atof(yytext); return (NUMBER); }
+{IDENTIFIER}        { yylval.sval = strdup(yytext); return (IDENTIFIER); }
 
 \n                  { line_no++; }
 {W}                 { /* Ignore whitespace */ }

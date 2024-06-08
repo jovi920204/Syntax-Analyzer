@@ -1,4 +1,5 @@
 fun main () {
-	var i: int = 10101;
-    val k: int = 10;
+	var i: int;
+    i = 10;
+    print(i);
 }
