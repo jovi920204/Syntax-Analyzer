@@ -451,9 +451,9 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    45,    45,    49,    61,    70,    72,    80,    92,   105,
+       0,    45,    45,    49,    61,    70,    72,    81,    92,   105,
      111,   119,   121,   130,   137,   150,   157,   163,   170,   184,
-     190
+     191
 };
 #endif
 
@@ -1407,16 +1407,16 @@ yyreduce:
   case 6:
 #line 73 "parser.y"
     {
-        // printf("declarations\n");
-        (yyval.sval) = strdup((yyvsp[(1) - (2)].sval));
+        (yyval.sval) = malloc(strlen((yyvsp[(1) - (2)].sval)) + strlen((yyvsp[(2) - (2)].sval)) + 1);
+        strcpy((yyval.sval), (yyvsp[(1) - (2)].sval));
+        strcat((yyval.sval), (yyvsp[(2) - (2)].sval));
     }
     break;
 
   case 7:
-#line 81 "parser.y"
+#line 82 "parser.y"
     {
-        // printf("declaration1\n");
-        (yyvsp[(2) - (7)].node).sval = strdup((yyvsp[(6) - (7)].node).sval);
+        printf("declaration1 %s\n", (yyvsp[(4) - (7)].sval));
         (yyvsp[(2) - (7)].node).type = strdup((yyvsp[(4) - (7)].sval));
         // TODO: symbol table
         addSymbolTable((yyvsp[(2) - (7)].node).sval, (yyvsp[(2) - (7)].node).type);
@@ -1529,21 +1529,23 @@ yyreduce:
   case 19:
 #line 185 "parser.y"
     {
-        // printf("term IDENTIFIER\n");
+        printf("term IDENTIFIER\n");
         (yyval.node) = (struct Node){(yyvsp[(1) - (1)].node).sval, searchType((yyvsp[(1) - (1)].node).sval)};
+        printf("done\n");
     }
     break;
 
   case 20:
-#line 191 "parser.y"
-    { 
+#line 192 "parser.y"
+    {
+        printf("type = %s\n", (yyvsp[(1) - (1)].node).type);
         (yyval.node) = (struct Node){(yyvsp[(1) - (1)].node).sval, (yyvsp[(1) - (1)].node).type};
     }
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1547 "y.tab.c"
+#line 1549 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1757,7 +1759,7 @@ yyreturn:
 }
 
 
-#line 195 "parser.y"
+#line 197 "parser.y"
 
 
 int main() {
@@ -1770,6 +1772,7 @@ void yyerror(const char *s) {
 
 /* addSymbolTable(char* idName, char* type) */
 void addSymbolTable(char* name, char* type){
+    /* printf("add Sym\n"); */
     if (symbolTableTop > 40){
         printf("symbol table is full.\n");
         return;
@@ -1782,6 +1785,7 @@ void addSymbolTable(char* name, char* type){
     else{
         printf("Already exist.\n");
     }
+    /* printf("done\n"); */
 }
 /* search */
 char* searchType(char* name){

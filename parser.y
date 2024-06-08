@@ -71,16 +71,16 @@ declarations:
     |
     declaration declarations
     {
-        // printf("declarations\n");
-        $$ = strdup($1);
+        $$ = malloc(strlen($1) + strlen($2) + 1);
+        strcpy($$, $1);
+        strcat($$, $2);
     }
     ;
 
 declaration:
     VAR IDENTIFIER ':' type '=' expression ';'
     {
-        // printf("declaration1\n");
-        $2.sval = strdup($6.sval);
+        printf("declaration1 %s\n", $4);
         $2.type = strdup($4);
         // TODO: symbol table
         addSymbolTable($2.sval, $2.type);
@@ -183,12 +183,14 @@ expression:
 term:
     IDENTIFIER
     {
-        // printf("term IDENTIFIER\n");
+        printf("term IDENTIFIER\n");
         $$ = (struct Node){$1.sval, searchType($1.sval)};
+        printf("done\n");
     }
     |
     NUMBER
-    { 
+    {
+        printf("type = %s\n", $1.type);
         $$ = (struct Node){$1.sval, $1.type};
     }
     ;
@@ -204,6 +206,7 @@ void yyerror(const char *s) {
 
 /* addSymbolTable(char* idName, char* type) */
 void addSymbolTable(char* name, char* type){
+    /* printf("add Sym\n"); */
     if (symbolTableTop > 40){
         printf("symbol table is full.\n");
         return;
@@ -216,6 +219,7 @@ void addSymbolTable(char* name, char* type){
     else{
         printf("Already exist.\n");
     }
+    /* printf("done\n"); */
 }
 /* search */
 char* searchType(char* name){
