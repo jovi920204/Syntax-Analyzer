@@ -1123,17 +1123,17 @@ YY_RULE_SETUP
 case 57:
 YY_RULE_SETUP
 #line 91 "scanner.l"
-{ yylval.fval = atoi(yytext); return (NUMBER); }
+{ yylval.node.sval = strdup(yytext); yylval.node.type = strdup("int"); return (NUMBER); }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
 #line 92 "scanner.l"
-{ yylval.fval = atof(yytext); return (NUMBER); }
+{ yylval.node.sval = strdup(yytext); yylval.node.type = strdup("double"); return (NUMBER); }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
 #line 93 "scanner.l"
-{ yylval.sval = strdup(yytext); return (IDENTIFIER); }
+{ yylval.node.sval = strdup(yytext); yylval.node.type = strdup("unknown"); return (IDENTIFIER); }
 	YY_BREAK
 case 60:
 /* rule 60 can match eol */

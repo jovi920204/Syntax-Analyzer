@@ -6,6 +6,14 @@
 extern int yylex();
 extern char* yytext;
 void yyerror(const char *s);
+void addSymbolTable(char* name, char* type);
+char* searchType(char* name);
+
+struct dataType{
+    char *idName;
+    char *type;
+}symbolTable[40];
+int symbolTableTop = 0;
 
 %}
 
@@ -14,14 +22,19 @@ void yyerror(const char *s);
     int ival;
     float fval;
     char *sval;
+    struct Node{
+        char *sval;
+        char *type;
+    }node;
 };
 
-%token <sval> FUN MAIN VAR VAL INT REAL PRINT IDENTIFIER STRING_LITERAL
-%token <fval> NUMBER
+%token <sval> FUN MAIN VAR VAL INT REAL PRINT STRING_LITERAL
+%token <node> NUMBER IDENTIFIER
 %token MULTIPLY
 
-%type <sval> program function block declarations declaration type statements statement expression term
-
+%type <sval> program function block declarations declaration type statements statement
+%type <node> expression
+%type <node> term
 /* %token T_INT */
 /* 先乘除後加減，且定義由左到右運算 */
 %left '+' '-'
@@ -54,7 +67,7 @@ block:
     ;
 
 declarations:
-    /* empty */ { ; }
+    /* empty */ { $$ = strdup(""); }
     |
     declaration declarations
     {
@@ -67,16 +80,23 @@ declaration:
     VAR IDENTIFIER ':' type '=' expression ';'
     {
         // printf("declaration1\n");
+        $2.sval = strdup($6.sval);
+        $2.type = strdup($4);
+        // TODO: symbol table
+        addSymbolTable($2.sval, $2.type);
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "    %s %s = %s;\n", $4, $2, $6);
+        snprintf(buffer, sizeof(buffer), "    %s %s = %s;\n", $4, $2.sval, $6.sval);
         $$ = strdup(buffer);
     }
     |
     VAR IDENTIFIER ':' type ';'
     {
         // printf("declaration2\n");
+        $2.type = strdup($4);
+        // TODO: symbol table
+        addSymbolTable($2.sval, $2.type);
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "    %s %s;\n", $4, $2);
+        snprintf(buffer, sizeof(buffer), "    %s %s;\n", $4, $2.sval);
         $$ = strdup(buffer);
     }
     ;
@@ -110,7 +130,7 @@ statement:
     IDENTIFIER '=' expression ';'
     {
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "    %s = %s;\n", $1, $3);
+        snprintf(buffer, sizeof(buffer), "    %s = %s;\n", $1.sval, $3.sval);
         $$ = strdup(buffer);
     }
     |
@@ -118,7 +138,12 @@ statement:
     {
         // printf( expression );
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3);
+        if (strcmp($3.type, "int") == 0){
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
+        }
+        else {
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\\n\", %s);\n", $3.sval);
+        }
         $$ = strdup(buffer);
     }
     |
@@ -130,6 +155,24 @@ statement:
 
 expression:
     term
+    {
+        // printf("expression term\n");
+        $$ = (struct Node){$1.sval, $1.type};
+    }
+    |
+    expression '+' term
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s + %s", $1.sval, $3.sval);
+        $$ = (struct Node){strdup(buffer), $1.type};
+    }
+    |
+    expression '-' term
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s + %s", $1.sval, $3.sval);
+        $$ = (struct Node){strdup(buffer), $1.type};
+    }
     /* |
     expression MULTIPLY term
     {
@@ -140,13 +183,13 @@ expression:
 term:
     IDENTIFIER
     {
-        $$ = strdup($1);
+        // printf("term IDENTIFIER\n");
+        $$ = (struct Node){$1.sval, searchType($1.sval)};
     }
     |
-    NUMBER { 
-        char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%f", $1);
-        $$ = strdup(buffer);
+    NUMBER
+    { 
+        $$ = (struct Node){$1.sval, $1.type};
     }
     ;
 %%
@@ -157,4 +200,29 @@ int main() {
 
 void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
+}
+
+/* addSymbolTable(char* idName, char* type) */
+void addSymbolTable(char* name, char* type){
+    if (symbolTableTop > 40){
+        printf("symbol table is full.\n");
+        return;
+    }
+    if (searchType(name) == NULL){
+        symbolTable[symbolTableTop].idName = name;
+        symbolTable[symbolTableTop].type = type;
+        symbolTableTop += 1;
+    }
+    else{
+        printf("Already exist.\n");
+    }
+}
+/* search */
+char* searchType(char* name){
+    for (int i=0;i<symbolTableTop;i++){
+        if (strcmp(symbolTable[i].idName, name) == 0){
+            return symbolTable[i].type;
+        }
+    }
+    return NULL;
 }

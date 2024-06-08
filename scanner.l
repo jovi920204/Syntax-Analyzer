@@ -88,9 +88,9 @@ TERMINAL    (";"|","|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"=")
 "\\\?"              { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
 
 {TERMINAL}          { return (yytext[0]); }
-{INT}               { yylval.fval = atoi(yytext); return (NUMBER); }
-{REAL}              { yylval.fval = atof(yytext); return (NUMBER); }
-{IDENTIFIER}        { yylval.sval = strdup(yytext); return (IDENTIFIER); }
+{INT}               { yylval.node.sval = strdup(yytext); yylval.node.type = strdup("int"); return (NUMBER); }
+{REAL}              { yylval.node.sval = strdup(yytext); yylval.node.type = strdup("double"); return (NUMBER); }
+{IDENTIFIER}        { yylval.node.sval = strdup(yytext); yylval.node.type = strdup("unknown"); return (IDENTIFIER); }
 
 \n                  { line_no++; }
 {W}                 { /* Ignore whitespace */ }

@@ -46,9 +46,9 @@
      INT = 262,
      REAL = 263,
      PRINT = 264,
-     IDENTIFIER = 265,
-     STRING_LITERAL = 266,
-     NUMBER = 267,
+     STRING_LITERAL = 265,
+     NUMBER = 266,
+     IDENTIFIER = 267,
      MULTIPLY = 268
    };
 #endif
@@ -60,9 +60,9 @@
 #define INT 262
 #define REAL 263
 #define PRINT 264
-#define IDENTIFIER 265
-#define STRING_LITERAL 266
-#define NUMBER 267
+#define STRING_LITERAL 265
+#define NUMBER 266
+#define IDENTIFIER 267
 #define MULTIPLY 268
 
 
@@ -70,14 +70,18 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 13 "parser.y"
+#line 21 "parser.y"
 {
     int ival;
     float fval;
     char *sval;
+    struct Node{
+        char *sval;
+        char *type;
+    }node;
 }
 /* Line 1529 of yacc.c.  */
-#line 81 "y.tab.h"
+#line 85 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
