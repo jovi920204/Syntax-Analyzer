@@ -4,7 +4,7 @@
 #include "y.tab.h"
 #include "type.h"
 
-char strbuffer[200];
+char strbuffer[1000];
 int line_no = 1;
 void yyerror(const char *s);
 
@@ -34,10 +34,15 @@ TERMINAL    (";"|","|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"=")
 <M_COMMENT><<EOF>>  { yyerror("Invalid character"); yyterminate(); }
 "*/"                { yyerror("Invalid character"); yyterminate(); }
 
-["]                     { BEGIN STRINGS; strbuffer[0] = '\0'; printf("dq-String: %d, ", T_STRING); }
-<STRINGS>["]            { BEGIN 0; strcpy(yylval.sval, strbuffer); return (STRING_LITERAL); }
+["]                     { BEGIN STRINGS; memset(strbuffer, 0, 256); }
+<STRINGS>["]            {
+                          BEGIN 0;
+                          yylval.node.sval = strdup(strbuffer);
+                          yylval.node.type = strdup("string");
+                          return (STRING_LITERAL);
+                        }
 <STRINGS>[\\][\\]        { strcat(strbuffer, "\\"); }
-<STRINGS>[\\][n]        { strcat(strbuffer, "\n"); }
+<STRINGS>[\\][n]        { strcat(strbuffer, "\\n"); }
 <STRINGS>[\\][t]        { strcat(strbuffer, "\t"); }
 <STRINGS>[\\][']        { strcat(strbuffer, "\'"); }
 <STRINGS>[\\]["]        { strcat(strbuffer, "\""); }

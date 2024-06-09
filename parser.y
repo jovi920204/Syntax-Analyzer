@@ -28,8 +28,8 @@ int symbolTableTop = 0;
     }node;
 };
 
-%token <sval> FUN MAIN VAR VAL INT REAL PRINT STRING_LITERAL
-%token <node> NUMBER IDENTIFIER
+%token <sval> FUN MAIN VAR VAL INT REAL PRINT
+%token <node> NUMBER IDENTIFIER STRING_LITERAL
 %token MULTIPLY
 
 %type <sval> program function block declarations declaration type statements statement
@@ -59,6 +59,7 @@ function:
 block:
     declarations statements
     {
+        // printf("block - declarations statements\n");
         $$ = malloc(strlen($1) + strlen($2) + 1);
         strcpy($$, $1);
         strcat($$, $2);
@@ -66,10 +67,15 @@ block:
     ;
 
 declarations:
-    /* empty */ { $$ = strdup(""); }
+    /* empty */
+    {
+        // printf("declarations - empty\n");
+        $$ = strdup(""); 
+    }
     |
     declaration declarations
     {
+        // printf("declarations - declaration declarations\n");
         $$ = malloc(strlen($1) + strlen($2) + 1);
         strcpy($$, $1);
         strcat($$, $2);
@@ -116,10 +122,15 @@ type:
     ;
 
 statements:
-    /* empty */ { $$ = strdup(""); }
+    /* empty */ 
+    {
+        // printf("statements - empty\n");
+        $$ = strdup(""); 
+    }
     |
     statement statements
     {
+        // printf("statements - statement statements\n");
         $$ = malloc(strlen($1) + strlen($2) + 1);
         strcpy($$, $1);
         strcat($$, $2);
@@ -129,27 +140,28 @@ statements:
 statement:
     IDENTIFIER '=' expression ';'
     {
+        // printf("statement - IDENTIFIER = expression ;\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s = %s;\n", $1.sval, $3.sval);
+        // printf("statement ID = expr ;\n");
         $$ = strdup(buffer);
     }
     |
     PRINT '(' expression ')' ';'
     {
-        // printf("expression\n");
+        // printf("statement - PRINT ( expression ) ;\n");
         char buffer[256];
         if (strcmp($3.type, "int") == 0){
-            snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", $3.sval);
+        }
+        else if (strcmp($3.type, "double") == 0){
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\", %s);\n", $3.sval);
         }
         else {
-            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\\n\", %s);\n", $3.sval);
+            // printf("PRINT string\n");
+            snprintf(buffer, sizeof(buffer), "    printf(\"%s\");\n", $3.sval);
         }
         $$ = strdup(buffer);
-    }
-    |
-    PRINT '(' STRING_LITERAL ')' ';'
-    {
-
     }
     ;
 
@@ -199,6 +211,7 @@ term:
     |
     factor
     {
+        // printf("term - factor\n");
         $$ = (struct Node){$1.sval, $1.type};
     }
     ;
@@ -206,6 +219,7 @@ term:
 factor:
     '(' expression ')'
     {
+        // printf("factor ( expression )\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "( %s )", $2.sval);
         $$ = (struct Node){strdup(buffer), $2.type};
@@ -213,6 +227,7 @@ factor:
     |
     IDENTIFIER
     {
+        // printf("factor - IDENTIFIER\n");
         // printf("id => %s\n", $1.sval);
         $$ = (struct Node){$1.sval, searchType($1.sval)};
         // printf("done\n");
@@ -220,8 +235,16 @@ factor:
     |
     NUMBER
     {
+        // printf("factor - NUMBER\n");
         // printf("num => %s\n", $1.sval);
         // printf("type = %s\n", $1.type);
+        $$ = (struct Node){$1.sval, $1.type};
+    }
+    |
+    STRING_LITERAL
+    {
+        // printf("factor - STRING_LITERAL ;\n");
+        // printf("string => %s\n", $1.sval);
         $$ = (struct Node){$1.sval, $1.type};
     }
     ;

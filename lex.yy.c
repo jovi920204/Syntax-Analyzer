@@ -542,7 +542,7 @@ char *yytext;
 #include "y.tab.h"
 #include "type.h"
 
-char strbuffer[200];
+char strbuffer[1000];
 int line_no = 1;
 void yyerror(const char *s);
 
@@ -877,286 +877,291 @@ YY_RULE_SETUP
 case 9:
 YY_RULE_SETUP
 #line 37 "scanner.l"
-{ BEGIN STRINGS; strbuffer[0] = '\0'; printf("dq-String: %d, ", T_STRING); }
+{ BEGIN STRINGS; memset(strbuffer, 0, 256); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 38 "scanner.l"
-{ BEGIN 0; strcpy(yylval.sval, strbuffer); return (STRING_LITERAL); }
+{
+                          BEGIN 0;
+                          yylval.node.sval = strdup(strbuffer);
+                          yylval.node.type = strdup("string");
+                          return (STRING_LITERAL);
+                        }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 39 "scanner.l"
+#line 44 "scanner.l"
 { strcat(strbuffer, "\\"); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 40 "scanner.l"
-{ strcat(strbuffer, "\n"); }
+#line 45 "scanner.l"
+{ strcat(strbuffer, "\\n"); }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 41 "scanner.l"
+#line 46 "scanner.l"
 { strcat(strbuffer, "\t"); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 42 "scanner.l"
+#line 47 "scanner.l"
 { strcat(strbuffer, "\'"); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 43 "scanner.l"
+#line 48 "scanner.l"
 { strcat(strbuffer, "\""); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 44 "scanner.l"
+#line 49 "scanner.l"
 { strcat(strbuffer, "\?"); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 45 "scanner.l"
+#line 50 "scanner.l"
 { yyerror("Invalid character"); yyterminate(); }
 	YY_BREAK
 case YY_STATE_EOF(STRINGS):
-#line 46 "scanner.l"
+#line 51 "scanner.l"
 { yyerror("Invalid character"); yyterminate(); }
 	YY_BREAK
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 47 "scanner.l"
+#line 52 "scanner.l"
 { strcat(strbuffer, yytext); line_no++; } 
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 48 "scanner.l"
+#line 53 "scanner.l"
 { strcat(strbuffer, yytext); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 51 "scanner.l"
+#line 56 "scanner.l"
 { yyerror("Invalid character"); yyterminate(); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 52 "scanner.l"
+#line 57 "scanner.l"
 { printf("single-quote: %d, %c%c\n", T_CHAR_CONST, yytext[1], yytext[2]); }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 53 "scanner.l"
+#line 58 "scanner.l"
 { printf("single-quote: %d, %c\n", T_CHAR_CONST, yytext[2]); } 
 	YY_BREAK
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 54 "scanner.l"
+#line 59 "scanner.l"
 { printf("single-quote: %d, %c\n", T_CHAR_CONST, yytext[1]); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 56 "scanner.l"
+#line 61 "scanner.l"
 { return (VAR); }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 57 "scanner.l"
+#line 62 "scanner.l"
 { return (VAL); }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 58 "scanner.l"
+#line 63 "scanner.l"
 { printf("keyword: %d, %s\n", T_BOOL, yytext); }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 59 "scanner.l"
+#line 64 "scanner.l"
 { printf("keyword: %d, %s\n", T_CHAR, yytext); }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 60 "scanner.l"
+#line 65 "scanner.l"
 { return (INT); }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 61 "scanner.l"
+#line 66 "scanner.l"
 { return (REAL); }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 62 "scanner.l"
+#line 67 "scanner.l"
 { printf("keyword: %d, %s\n", T_TRUE, yytext); }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 63 "scanner.l"
+#line 68 "scanner.l"
 { printf("keyword: %d, %s\n", T_FALSE, yytext); }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 64 "scanner.l"
+#line 69 "scanner.l"
 { printf("keyword: %d, %s\n", T_CLASS, yytext); }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 65 "scanner.l"
+#line 70 "scanner.l"
 { printf("keyword: %d, %s\n", T_IF, yytext); }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 66 "scanner.l"
+#line 71 "scanner.l"
 { printf("keyword: %d, %s\n", T_ELSE, yytext); }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 67 "scanner.l"
+#line 72 "scanner.l"
 { printf("keyword: %d, %s\n", T_FOR, yytext); }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 68 "scanner.l"
+#line 73 "scanner.l"
 { printf("keyword: %d, %s\n", T_WHILE, yytext); }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 69 "scanner.l"
+#line 74 "scanner.l"
 { printf("keyword: %d, %s\n", T_DO, yytext); }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 70 "scanner.l"
+#line 75 "scanner.l"
 { printf("keyword: %d, %s\n", T_SWITCH, yytext); }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 71 "scanner.l"
+#line 76 "scanner.l"
 { printf("keyword: %d, %s\n", T_CASE, yytext); }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 72 "scanner.l"
+#line 77 "scanner.l"
 { return (FUN); }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 73 "scanner.l"
+#line 78 "scanner.l"
 { return (MAIN); }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 74 "scanner.l"
+#line 79 "scanner.l"
 { printf("keyword: %d, %s\n", T_RET, yytext); }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 75 "scanner.l"
+#line 80 "scanner.l"
 { return (PRINT); }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 76 "scanner.l"
+#line 81 "scanner.l"
 { printf("EQUAL_CMP: %d, %s\n", T_EQUAL_CMP, yytext); }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 77 "scanner.l"
+#line 82 "scanner.l"
 { printf("INEQUAL_CMP: %d, %s\n", T_INEQUAL_CMP, yytext); }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 78 "scanner.l"
+#line 83 "scanner.l"
 { printf("LARGER_THAN: %d, %s\n", T_LARGER_THAN, yytext); }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 79 "scanner.l"
+#line 84 "scanner.l"
 { printf("SMALLER_THAN: %d, %s\n", T_SMALLER_THAN, yytext); }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 80 "scanner.l"
+#line 85 "scanner.l"
 { printf("LARGER_EQUAL: %d, %s\n", T_LARGER_EQUAL, yytext); }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 81 "scanner.l"
+#line 86 "scanner.l"
 { printf("SMALLER_EQUAL: %d, %s\n", T_SMALLER_EQUAL, yytext); }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 83 "scanner.l"
+#line 88 "scanner.l"
 { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 84 "scanner.l"
+#line 89 "scanner.l"
 { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 85 "scanner.l"
+#line 90 "scanner.l"
 { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 86 "scanner.l"
+#line 91 "scanner.l"
 { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 87 "scanner.l"
+#line 92 "scanner.l"
 { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 88 "scanner.l"
+#line 93 "scanner.l"
 { printf("ESCAPE_SEQUENCE: %d, %s\n", T_ESCAPE_SEQUENCE, yytext); }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 90 "scanner.l"
+#line 95 "scanner.l"
 { return (yytext[0]); }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 91 "scanner.l"
+#line 96 "scanner.l"
 { yylval.node.sval = strdup(yytext); yylval.node.type = strdup("int"); return (NUMBER); }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 92 "scanner.l"
+#line 97 "scanner.l"
 { yylval.node.sval = strdup(yytext); yylval.node.type = strdup("double"); return (NUMBER); }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 93 "scanner.l"
+#line 98 "scanner.l"
 { yylval.node.sval = strdup(yytext); yylval.node.type = strdup("unknown"); return (IDENTIFIER); }
 	YY_BREAK
 case 60:
 /* rule 60 can match eol */
 YY_RULE_SETUP
-#line 95 "scanner.l"
+#line 100 "scanner.l"
 { line_no++; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 96 "scanner.l"
+#line 101 "scanner.l"
 { /* Ignore whitespace */ }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 98 "scanner.l"
+#line 103 "scanner.l"
 { yyerror("invalid character"); yyterminate(); } 
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 100 "scanner.l"
+#line 105 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 1159 "lex.yy.c"
+#line 1164 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(S_COMMENT):
 	yyterminate();
@@ -2162,7 +2167,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 100 "scanner.l"
+#line 105 "scanner.l"
 
 
 int yywrap(void){

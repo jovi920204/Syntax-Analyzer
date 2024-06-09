@@ -46,9 +46,9 @@
      INT = 262,
      REAL = 263,
      PRINT = 264,
-     STRING_LITERAL = 265,
-     NUMBER = 266,
-     IDENTIFIER = 267,
+     NUMBER = 265,
+     IDENTIFIER = 266,
+     STRING_LITERAL = 267,
      MULTIPLY = 268
    };
 #endif
@@ -60,9 +60,9 @@
 #define INT 262
 #define REAL 263
 #define PRINT 264
-#define STRING_LITERAL 265
-#define NUMBER 266
-#define IDENTIFIER 267
+#define NUMBER 265
+#define IDENTIFIER 266
+#define STRING_LITERAL 267
 #define MULTIPLY 268
 
 
