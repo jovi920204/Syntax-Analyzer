@@ -3,7 +3,7 @@ fun main () {
 	var j: real = 3.14;
 	var k: real = 2.8;
 	print(i + j * k);
-	print("\n");
+	println("\n");
 	print(i * (j + k));
-	print("\n");
+	println("\n");
 }

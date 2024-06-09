@@ -28,7 +28,7 @@ int symbolTableTop = 0;
     }node;
 };
 
-%token <sval> FUN MAIN VAR VAL INT REAL PRINT
+%token <sval> FUN MAIN VAR VAL INT REAL PRINT PRINTLN
 %token <node> NUMBER IDENTIFIER STRING_LITERAL
 %token MULTIPLY
 
@@ -157,9 +157,31 @@ statement:
         else if (strcmp($3.type, "double") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\", %s);\n", $3.sval);
         }
-        else {
+        else if (strcmp($3.type, "string") == 0){
             // printf("PRINT string\n");
             snprintf(buffer, sizeof(buffer), "    printf(\"%s\");\n", $3.sval);
+        }
+        else {
+            printf("ERROR: unknown type\n");
+        }
+        $$ = strdup(buffer);
+    }
+    |
+    PRINTLN '(' expression ')' ';'
+    {
+        // printf("statement - PRINTLN ( expression ) ;\n");
+        char buffer[256];
+        if (strcmp($3.type, "int") == 0){
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
+        }
+        else if (strcmp($3.type, "double") == 0){
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\\n\", %s);\n", $3.sval);
+        }
+        else if (strcmp($3.type, "string") == 0){
+            snprintf(buffer, sizeof(buffer), "    printf(\"%s\\n\");\n", $3.sval);
+        }
+        else {
+            printf("ERROR: unknown type\n");
         }
         $$ = strdup(buffer);
     }

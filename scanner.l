@@ -78,6 +78,7 @@ TERMINAL    (";"|","|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"=")
 "main"              { return (MAIN); }
 "ret"               { printf("keyword: %d, %s\n", T_RET, yytext); }
 "print"             { return (PRINT); }
+"println"           { return (PRINTLN); }
 "=="                { printf("EQUAL_CMP: %d, %s\n", T_EQUAL_CMP, yytext); }
 "!="                { printf("INEQUAL_CMP: %d, %s\n", T_INEQUAL_CMP, yytext); }
 ">"                 { printf("LARGER_THAN: %d, %s\n", T_LARGER_THAN, yytext); }

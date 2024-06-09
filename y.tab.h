@@ -46,10 +46,11 @@
      INT = 262,
      REAL = 263,
      PRINT = 264,
-     NUMBER = 265,
-     IDENTIFIER = 266,
-     STRING_LITERAL = 267,
-     MULTIPLY = 268
+     PRINTLN = 265,
+     NUMBER = 266,
+     IDENTIFIER = 267,
+     STRING_LITERAL = 268,
+     MULTIPLY = 269
    };
 #endif
 /* Tokens.  */
@@ -60,10 +61,11 @@
 #define INT 262
 #define REAL 263
 #define PRINT 264
-#define NUMBER 265
-#define IDENTIFIER 266
-#define STRING_LITERAL 267
-#define MULTIPLY 268
+#define PRINTLN 265
+#define NUMBER 266
+#define IDENTIFIER 267
+#define STRING_LITERAL 268
+#define MULTIPLY 269
 
 
 
@@ -81,7 +83,7 @@ typedef union YYSTYPE
     }node;
 }
 /* Line 1529 of yacc.c.  */
-#line 85 "y.tab.h"
+#line 87 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
