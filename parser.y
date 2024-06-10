@@ -6,12 +6,14 @@
 extern int yylex();
 extern char* yytext;
 void yyerror(const char *s);
-void addSymbolTable(char* name, char* type);
+void addSymbolTable(char* name, char* type, int size);
 char* searchType(char* name);
+char* vectorFillZeros(const char* s, int size);
 
 struct dataType{
     char *idName;
     char *type;
+    int size;
 }symbolTable[40];
 int symbolTableTop = 0;
 
@@ -26,6 +28,11 @@ int symbolTableTop = 0;
         char *sval;
         char *type;
     }node;
+    struct ExpressionNode{
+        char *sval;
+        char *type;
+        int size;
+    }expression_node;
 };
 
 %token <sval> FUN MAIN VAR VAL INT REAL PRINT PRINTLN
@@ -33,7 +40,7 @@ int symbolTableTop = 0;
 %token MULTIPLY
 
 %type <sval> program function block declarations declaration type statements statement
-%type <node> expression term factor
+%type <expression_node> expression vector term factor array_declaration
 /* %token T_INT */
 /* 先乘除後加減，且定義由左到右運算 */
 /* %left '+' '-'
@@ -49,7 +56,24 @@ function:
         block
     '}'
     {
+
+
+// double inner_product_1d(int size, double *arr1, double *arr2) {
+//     double result = 0.0;
+//     for (int i = 0; i < size; i++) {
+//         result += arr1[i] * arr2[i];
+//     }
+//     return result;
+// }        
         printf("#include <stdio.h>\n");
+        printf("#include <stdlib.h>\n");
+        printf("double inner_product_1d(int size, double *arr1, double *arr2) {\n");
+        printf("    double result = 0.0;\n");
+        printf("    for (int i = 0; i < size; i++) {\n");
+        printf("        result += arr1[i] * arr2[i];\n");
+        printf("    }\n");
+        printf("    return result;\n");
+        printf("}\n");
         printf("int main() {\n");
         printf("%s", $6);
         printf("}\n");
@@ -89,9 +113,39 @@ declaration:
         // printf("declaration1 %s\n", $4);
         $2.type = strdup($4);
         // TODO: symbol table
-        addSymbolTable($2.sval, $2.type);
+        addSymbolTable($2.sval, $2.type, 1);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s %s = %s;\n", $4, $2.sval, $6.sval);
+        $$ = strdup(buffer);
+    }
+    |
+    VAR IDENTIFIER ':' type array_declaration '=' expression ';'
+    {
+        // printf("declaration - VAR IDENTIFIER ':' type array_declaration '=' expression ';' %s\n", $4);
+        $2.type = strdup($4);
+        // printf("expression.size = %d\n", $7.size);
+        int defSize = $5.size;
+        int decSize = $7.size;
+        // compare defSize and decSize
+        // if defSize >= decSize => fill 0s
+        char* filledArray;
+        // else if  yyerror("ERROR: mismatched dimensions")
+        // printf("defSize = %d, decSize = %d\n", defSize, decSize);
+        if (defSize < decSize){
+            yyerror("ERROR: mismatched dimensions");
+            exit(0);
+        }
+        else {
+            printf("HELLO\n");
+            printf("%s\n", $7.sval);
+            filledArray = vectorFillZeros($7.sval, defSize);
+            printf("%s\n", filledArray);
+        }
+        
+
+        addSymbolTable($2.sval, $2.type, $5.size);
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "    %s %s%s = %s;\n", $4, $2.sval, $5.sval, filledArray);
         $$ = strdup(buffer);
     }
     |
@@ -100,9 +154,20 @@ declaration:
         // printf("declaration2\n");
         $2.type = strdup($4);
         // TODO: symbol table
-        addSymbolTable($2.sval, $2.type);
+        addSymbolTable($2.sval, $2.type, 1);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s %s;\n", $4, $2.sval);
+        $$ = strdup(buffer);
+    }
+    |
+    VAR IDENTIFIER ':' type array_declaration ';'
+    {
+        // printf("declaration2\n");
+        $2.type = strdup($4);
+        // TODO: symbol table
+        addSymbolTable($2.sval, $2.type, $5.size);
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "    %s %s%s;\n", $4, $2.sval, $5.sval);
         $$ = strdup(buffer);
     }
     ;
@@ -118,6 +183,22 @@ type:
     {
         // printf("type real\n");
         $$ = strdup("double"); 
+    }
+    ;
+
+array_declaration:
+    /* array_declaration '[' expression ']'
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s[%s]", $1, $3.sval);
+        $$ = (struct ExpressionNode){strdup(buffer), "string", };
+    }
+    | */
+    '[' expression ']'
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "[%s]", $2.sval);
+        $$ = (struct ExpressionNode){strdup(buffer), "string", atoi($2.sval)};
     }
     ;
 
@@ -191,7 +272,7 @@ expression:
     term
     {
         // printf("expression term\n");
-        $$ = (struct Node){$1.sval, $1.type};
+        $$ = (struct ExpressionNode){$1.sval, $1.type, $1.size};
     }
     |
     expression '+' term
@@ -200,7 +281,7 @@ expression:
         // printf("+\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s + %s", $1.sval, $3.sval);
-        $$ = (struct Node){strdup(buffer), $1.type};
+        $$ = (struct ExpressionNode){strdup(buffer), $1.type, 1};
     }
     |
     expression '-' term
@@ -209,7 +290,7 @@ expression:
         // printf("-\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s - %s", $1.sval, $3.sval);
-        $$ = (struct Node){strdup(buffer), $1.type};
+        $$ = (struct ExpressionNode){strdup(buffer), $1.type, 1};
         // printf("buffer => %s, type => %s\n", buffer, $1.type);
     }
     ;
@@ -220,7 +301,7 @@ term:
         // printf("*\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s * %s", $1.sval, $3.sval);
-        $$ = (struct Node){strdup(buffer), $1.type};
+        $$ = (struct ExpressionNode){strdup(buffer), $1.type, 1};
     }
     |
     term '/' factor
@@ -228,13 +309,13 @@ term:
         // printf("/\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s / %s", $1.sval, $3.sval);
-        $$ = (struct Node){strdup(buffer), $1.type};
+        $$ = (struct ExpressionNode){strdup(buffer), $1.type, 1};
     }
     |
     factor
     {
         // printf("term - factor\n");
-        $$ = (struct Node){$1.sval, $1.type};
+        $$ = (struct ExpressionNode){$1.sval, $1.type, $1.size};
     }
     ;
 
@@ -244,14 +325,14 @@ factor:
         // printf("factor ( expression )\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "( %s )", $2.sval);
-        $$ = (struct Node){strdup(buffer), $2.type};
+        $$ = (struct ExpressionNode){strdup(buffer), $2.type, 1};
     }
     |
     IDENTIFIER
     {
         // printf("factor - IDENTIFIER\n");
         // printf("id => %s\n", $1.sval);
-        $$ = (struct Node){$1.sval, searchType($1.sval)};
+        $$ = (struct ExpressionNode){$1.sval, searchType($1.sval), 1};
         // printf("done\n");
     }
     |
@@ -260,14 +341,35 @@ factor:
         // printf("factor - NUMBER\n");
         // printf("num => %s\n", $1.sval);
         // printf("type = %s\n", $1.type);
-        $$ = (struct Node){$1.sval, $1.type};
+        $$ = (struct ExpressionNode){$1.sval, $1.type, 1};
     }
     |
     STRING_LITERAL
     {
         // printf("factor - STRING_LITERAL ;\n");
         // printf("string => %s\n", $1.sval);
-        $$ = (struct Node){$1.sval, $1.type};
+        $$ = (struct ExpressionNode){$1.sval, $1.type, 1};
+    }
+    |
+    '{' vector '}'
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "{ %s }", $2.sval);   
+        $$ = (struct ExpressionNode){strdup(buffer), "vector", $2.size};
+    }
+    ;
+
+vector:
+    expression ',' vector
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s, %s", $1.sval, $3.sval);
+        $$ = (struct ExpressionNode){strdup(buffer), strdup("vector"), $1.size + $3.size};
+    }
+    |
+    expression
+    {
+        $$ = (struct ExpressionNode){strdup($1.sval), strdup($1.type), $1.size};
     }
     ;
 %%
@@ -281,7 +383,7 @@ void yyerror(const char *s) {
 }
 
 /* addSymbolTable(char* idName, char* type) */
-void addSymbolTable(char* name, char* type){
+void addSymbolTable(char* name, char* type, int size){
     /* printf("add Sym\n"); */
     if (symbolTableTop > 40){
         printf("symbol table is full.\n");
@@ -290,6 +392,7 @@ void addSymbolTable(char* name, char* type){
     if (searchType(name) == NULL){
         symbolTable[symbolTableTop].idName = name;
         symbolTable[symbolTableTop].type = type;
+        symbolTable[symbolTableTop].size = size;
         symbolTableTop += 1;
     }
     else{
@@ -305,4 +408,33 @@ char* searchType(char* name){
         }
     }
     return NULL;
+}
+
+char* vectorFillZeros(const char* s, int size) {
+    int count = 0;
+    const char* p = s;
+    while (*p) {
+        if (*p == ',') {
+            count++;
+        }
+        p++;
+    }
+    count++;
+    int zerosToAdd = size - count;
+    if (zerosToAdd <= 0) {
+        return strdup(s);
+    }
+    int newSize = strlen(s) + zerosToAdd * 3 + 1;
+    char* result = (char*)malloc(newSize);
+    if (!result) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(1);
+    }
+    strncpy(result, s, strlen(s) - 2);
+    result[strlen(s) - 2] = '\0';
+    for (int i = 0; i < zerosToAdd; i++) {
+        strcat(result, ", 0");
+    }
+    strcat(result, " }");
+    return result;
 }

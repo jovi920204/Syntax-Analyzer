@@ -72,7 +72,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 21 "parser.y"
+#line 23 "parser.y"
 {
     int ival;
     float fval;
@@ -81,9 +81,14 @@ typedef union YYSTYPE
         char *sval;
         char *type;
     }node;
+    struct ExpressionNode{
+        char *sval;
+        char *type;
+        int size;
+    }expression_node;
 }
 /* Line 1529 of yacc.c.  */
-#line 87 "y.tab.h"
+#line 92 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

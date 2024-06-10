@@ -107,12 +107,14 @@
 extern int yylex();
 extern char* yytext;
 void yyerror(const char *s);
-void addSymbolTable(char* name, char* type);
+void addSymbolTable(char* name, char* type, int size);
 char* searchType(char* name);
+char* vectorFillZeros(const char* s, int size);
 
 struct dataType{
     char *idName;
     char *type;
+    int size;
 }symbolTable[40];
 int symbolTableTop = 0;
 
@@ -138,7 +140,7 @@ int symbolTableTop = 0;
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 21 "parser.y"
+#line 23 "parser.y"
 {
     int ival;
     float fval;
@@ -147,9 +149,14 @@ typedef union YYSTYPE
         char *sval;
         char *type;
     }node;
+    struct ExpressionNode{
+        char *sval;
+        char *type;
+        int size;
+    }expression_node;
 }
 /* Line 193 of yacc.c.  */
-#line 153 "y.tab.c"
+#line 160 "y.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -162,7 +169,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 166 "y.tab.c"
+#line 173 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -377,16 +384,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  5
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   54
+#define YYLAST   72
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  26
+#define YYNTOKENS  29
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  12
+#define YYNNTS  14
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  25
+#define YYNRULES  31
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  57
+#define YYNSTATES  71
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -402,12 +409,12 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      15,    16,    24,    22,     2,    23,     2,    25,     2,     2,
+      15,    16,    26,    24,    28,    25,     2,    27,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,    19,    21,
        2,    20,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,    22,     2,    23,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,    17,     2,    18,     2,     2,     2,     2,
@@ -432,31 +439,36 @@ static const yytype_uint8 yytranslate[] =
    YYRHS.  */
 static const yytype_uint8 yyprhs[] =
 {
-       0,     0,     3,     5,    13,    16,    17,    20,    28,    34,
-      36,    38,    39,    42,    47,    53,    59,    61,    65,    69,
-      73,    77,    79,    83,    85,    87
+       0,     0,     3,     5,    13,    16,    17,    20,    28,    37,
+      43,    50,    52,    54,    58,    59,    62,    67,    73,    79,
+      81,    85,    89,    93,    97,    99,   103,   105,   107,   109,
+     113,   117
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
 static const yytype_int8 yyrhs[] =
 {
-      27,     0,    -1,    28,    -1,     3,     4,    15,    16,    17,
-      29,    18,    -1,    30,    33,    -1,    -1,    31,    30,    -1,
-       5,    12,    19,    32,    20,    35,    21,    -1,     5,    12,
-      19,    32,    21,    -1,     7,    -1,     8,    -1,    -1,    34,
-      33,    -1,    12,    20,    35,    21,    -1,     9,    15,    35,
-      16,    21,    -1,    10,    15,    35,    16,    21,    -1,    36,
-      -1,    35,    22,    36,    -1,    35,    23,    36,    -1,    36,
-      24,    37,    -1,    36,    25,    37,    -1,    37,    -1,    15,
-      35,    16,    -1,    12,    -1,    11,    -1,    13,    -1
+      30,     0,    -1,    31,    -1,     3,     4,    15,    16,    17,
+      32,    18,    -1,    33,    37,    -1,    -1,    34,    33,    -1,
+       5,    12,    19,    35,    20,    39,    21,    -1,     5,    12,
+      19,    35,    36,    20,    39,    21,    -1,     5,    12,    19,
+      35,    21,    -1,     5,    12,    19,    35,    36,    21,    -1,
+       7,    -1,     8,    -1,    22,    39,    23,    -1,    -1,    38,
+      37,    -1,    12,    20,    39,    21,    -1,     9,    15,    39,
+      16,    21,    -1,    10,    15,    39,    16,    21,    -1,    40,
+      -1,    39,    24,    40,    -1,    39,    25,    40,    -1,    40,
+      26,    41,    -1,    40,    27,    41,    -1,    41,    -1,    15,
+      39,    16,    -1,    12,    -1,    11,    -1,    13,    -1,    17,
+      42,    18,    -1,    39,    28,    42,    -1,    39,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    44,    44,    48,    60,    71,    76,    87,    98,   111,
-     117,   126,   131,   141,   150,   170,   191,   197,   206,   218,
-     226,   234,   242,   250,   258,   266
+       0,    51,    51,    55,    84,    95,   100,   111,   122,   152,
+     163,   176,   182,   197,   207,   212,   222,   231,   251,   272,
+     278,   287,   299,   307,   315,   323,   331,   339,   347,   354,
+     363,   370
 };
 #endif
 
@@ -467,10 +479,11 @@ static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "FUN", "MAIN", "VAR", "VAL", "INT",
   "REAL", "PRINT", "PRINTLN", "NUMBER", "IDENTIFIER", "STRING_LITERAL",
-  "MULTIPLY", "'('", "')'", "'{'", "'}'", "':'", "'='", "';'", "'+'",
-  "'-'", "'*'", "'/'", "$accept", "program", "function", "block",
-  "declarations", "declaration", "type", "statements", "statement",
-  "expression", "term", "factor", 0
+  "MULTIPLY", "'('", "')'", "'{'", "'}'", "':'", "'='", "';'", "'['",
+  "']'", "'+'", "'-'", "'*'", "'/'", "','", "$accept", "program",
+  "function", "block", "declarations", "declaration", "type",
+  "array_declaration", "statements", "statement", "expression", "term",
+  "factor", "vector", 0
 };
 #endif
 
@@ -481,24 +494,26 @@ static const yytype_uint16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,    40,    41,   123,   125,    58,
-      61,    59,    43,    45,    42,    47
+      61,    59,    91,    93,    43,    45,    42,    47,    44
 };
 # endif
 
 /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    26,    27,    28,    29,    30,    30,    31,    31,    32,
-      32,    33,    33,    34,    34,    34,    35,    35,    35,    36,
-      36,    36,    37,    37,    37,    37
+       0,    29,    30,    31,    32,    33,    33,    34,    34,    34,
+      34,    35,    35,    36,    37,    37,    38,    38,    38,    39,
+      39,    39,    40,    40,    40,    41,    41,    41,    41,    41,
+      42,    42
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     1,     7,     2,     0,     2,     7,     5,     1,
-       1,     0,     2,     4,     5,     5,     1,     3,     3,     3,
-       3,     1,     3,     1,     1,     1
+       0,     2,     1,     7,     2,     0,     2,     7,     8,     5,
+       6,     1,     1,     3,     0,     2,     4,     5,     5,     1,
+       3,     3,     3,     3,     1,     3,     1,     1,     1,     3,
+       3,     1
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -507,38 +522,42 @@ static const yytype_uint8 yyr2[] =
 static const yytype_uint8 yydefact[] =
 {
        0,     0,     0,     2,     0,     1,     0,     0,     5,     0,
-       0,    11,     5,     0,     3,     0,     0,     0,     4,    11,
-       6,     0,     0,     0,     0,    12,     9,    10,     0,    24,
-      23,    25,     0,     0,    16,    21,     0,     0,     0,     8,
-       0,     0,     0,     0,     0,     0,     0,    13,     0,    22,
-      14,    17,    18,    19,    20,    15,     7
+       0,    14,     5,     0,     3,     0,     0,     0,     4,    14,
+       6,     0,     0,     0,     0,    15,    11,    12,     0,    27,
+      26,    28,     0,     0,     0,    19,    24,     0,     0,     0,
+       9,     0,     0,     0,    31,     0,     0,     0,     0,     0,
+       0,     0,    16,     0,     0,     0,    10,    25,     0,    29,
+      17,    20,    21,    22,    23,    18,     7,    13,     0,    30,
+       8
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     2,     3,    10,    11,    12,    28,    18,    19,    33,
-      34,    35
+      -1,     2,     3,    10,    11,    12,    28,    42,    18,    19,
+      44,    35,    36,    45
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -24
+#define YYPACT_NINF -23
 static const yytype_int8 yypact[] =
 {
-      16,    21,    36,   -24,    22,   -24,    24,    25,    38,    29,
-      26,    -7,    38,    27,   -24,    30,    32,    28,   -24,    -7,
-     -24,     0,    11,    11,    11,   -24,   -24,   -24,    10,   -24,
-     -24,   -24,    11,   -12,     8,   -24,   -10,    -5,    11,   -24,
-      -2,    31,    11,    11,    11,    11,    33,   -24,     6,   -24,
-     -24,     8,     8,   -24,   -24,   -24,   -24
+       3,     0,    18,   -23,     8,   -23,    28,    32,    22,    41,
+      38,    33,    22,    40,   -23,    45,    46,    44,   -23,    33,
+     -23,     1,     9,     9,     9,   -23,   -23,   -23,    26,   -23,
+     -23,   -23,     9,     9,   -13,    12,   -23,   -11,     4,     9,
+     -23,     9,    34,    -9,     6,    47,    48,     9,     9,     9,
+       9,    49,   -23,    11,    27,     9,   -23,   -23,     9,   -23,
+     -23,    12,    12,   -23,   -23,   -23,   -23,   -23,    16,   -23,
+     -23
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -24,   -24,   -24,   -24,    37,   -24,   -24,    34,   -24,   -23,
-      -8,    -6
+     -23,   -23,   -23,   -23,    54,   -23,   -23,   -23,    52,   -23,
+     -22,    10,    13,    14
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -548,34 +567,40 @@ static const yytype_int8 yypgoto[] =
 #define YYTABLE_NINF -1
 static const yytype_uint8 yytable[] =
 {
-      36,    37,    15,    16,    41,    17,    46,    26,    27,    40,
-      42,    43,    42,    43,    49,    48,    47,    42,    43,     1,
-      42,    43,    29,    30,    31,     4,    32,    56,    42,    43,
-      38,    39,    44,    45,    51,    52,     5,     6,    53,    54,
-       7,    13,     8,     9,    14,    22,    21,    23,    24,    20,
-       0,     0,    50,    25,    55
+      34,    37,    38,    46,     4,    51,     1,    57,    26,    27,
+      43,    47,    48,    47,    48,    47,    48,    53,     5,    54,
+      29,    30,    31,     6,    32,    52,    33,     9,    47,    48,
+      47,    48,    66,    68,    58,    47,    48,    70,    49,    50,
+      47,    48,    15,    16,     7,    17,    39,    40,    41,     8,
+      67,    47,    48,    13,    55,    56,    14,    61,    62,    21,
+      22,    23,    63,    64,    24,    59,    20,     0,     0,    60,
+      65,    25,    69
 };
 
 static const yytype_int8 yycheck[] =
 {
-      23,    24,     9,    10,    16,    12,    16,     7,     8,    32,
-      22,    23,    22,    23,    16,    38,    21,    22,    23,     3,
-      22,    23,    11,    12,    13,     4,    15,    21,    22,    23,
-      20,    21,    24,    25,    42,    43,     0,    15,    44,    45,
-      16,    12,    17,     5,    18,    15,    19,    15,    20,    12,
-      -1,    -1,    21,    19,    21
+      22,    23,    24,    16,     4,    16,     3,    16,     7,     8,
+      32,    24,    25,    24,    25,    24,    25,    39,     0,    41,
+      11,    12,    13,    15,    15,    21,    17,     5,    24,    25,
+      24,    25,    21,    55,    28,    24,    25,    21,    26,    27,
+      24,    25,     9,    10,    16,    12,    20,    21,    22,    17,
+      23,    24,    25,    12,    20,    21,    18,    47,    48,    19,
+      15,    15,    49,    50,    20,    18,    12,    -1,    -1,    21,
+      21,    19,    58
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
    symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,     3,    27,    28,     4,     0,    15,    16,    17,     5,
-      29,    30,    31,    12,    18,     9,    10,    12,    33,    34,
-      30,    19,    15,    15,    20,    33,     7,     8,    32,    11,
-      12,    13,    15,    35,    36,    37,    35,    35,    20,    21,
-      35,    16,    22,    23,    24,    25,    16,    21,    35,    16,
-      21,    36,    36,    37,    37,    21,    21
+       0,     3,    30,    31,     4,     0,    15,    16,    17,     5,
+      32,    33,    34,    12,    18,     9,    10,    12,    37,    38,
+      33,    19,    15,    15,    20,    37,     7,     8,    35,    11,
+      12,    13,    15,    17,    39,    40,    41,    39,    39,    20,
+      21,    22,    36,    39,    39,    42,    16,    24,    25,    26,
+      27,    16,    21,    39,    39,    20,    21,    16,    28,    18,
+      21,    40,    40,    41,    41,    21,    21,    23,    39,    42,
+      21
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1390,9 +1415,26 @@ yyreduce:
   switch (yyn)
     {
         case 3:
-#line 51 "parser.y"
+#line 58 "parser.y"
     {
+
+
+// double inner_product_1d(int size, double *arr1, double *arr2) {
+//     double result = 0.0;
+//     for (int i = 0; i < size; i++) {
+//         result += arr1[i] * arr2[i];
+//     }
+//     return result;
+// }        
         printf("#include <stdio.h>\n");
+        printf("#include <stdlib.h>\n");
+        printf("double inner_product_1d(int size, double *arr1, double *arr2) {\n");
+        printf("    double result = 0.0;\n");
+        printf("    for (int i = 0; i < size; i++) {\n");
+        printf("        result += arr1[i] * arr2[i];\n");
+        printf("    }\n");
+        printf("    return result;\n");
+        printf("}\n");
         printf("int main() {\n");
         printf("%s", (yyvsp[(6) - (7)].sval));
         printf("}\n");
@@ -1400,7 +1442,7 @@ yyreduce:
     break;
 
   case 4:
-#line 61 "parser.y"
+#line 85 "parser.y"
     {
         // printf("block - declarations statements\n");
         (yyval.sval) = malloc(strlen((yyvsp[(1) - (2)].sval)) + strlen((yyvsp[(2) - (2)].sval)) + 1);
@@ -1410,7 +1452,7 @@ yyreduce:
     break;
 
   case 5:
-#line 71 "parser.y"
+#line 95 "parser.y"
     {
         // printf("declarations - empty\n");
         (yyval.sval) = strdup(""); 
@@ -1418,7 +1460,7 @@ yyreduce:
     break;
 
   case 6:
-#line 77 "parser.y"
+#line 101 "parser.y"
     {
         // printf("declarations - declaration declarations\n");
         (yyval.sval) = malloc(strlen((yyvsp[(1) - (2)].sval)) + strlen((yyvsp[(2) - (2)].sval)) + 1);
@@ -1428,57 +1470,111 @@ yyreduce:
     break;
 
   case 7:
-#line 88 "parser.y"
+#line 112 "parser.y"
     {
         // printf("declaration1 %s\n", $4);
         (yyvsp[(2) - (7)].node).type = strdup((yyvsp[(4) - (7)].sval));
         // TODO: symbol table
-        addSymbolTable((yyvsp[(2) - (7)].node).sval, (yyvsp[(2) - (7)].node).type);
+        addSymbolTable((yyvsp[(2) - (7)].node).sval, (yyvsp[(2) - (7)].node).type, 1);
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "    %s %s = %s;\n", (yyvsp[(4) - (7)].sval), (yyvsp[(2) - (7)].node).sval, (yyvsp[(6) - (7)].node).sval);
+        snprintf(buffer, sizeof(buffer), "    %s %s = %s;\n", (yyvsp[(4) - (7)].sval), (yyvsp[(2) - (7)].node).sval, (yyvsp[(6) - (7)].expression_node).sval);
         (yyval.sval) = strdup(buffer);
     }
     break;
 
   case 8:
-#line 99 "parser.y"
+#line 123 "parser.y"
+    {
+        // printf("declaration - VAR IDENTIFIER ':' type array_declaration '=' expression ';' %s\n", $4);
+        (yyvsp[(2) - (8)].node).type = strdup((yyvsp[(4) - (8)].sval));
+        // printf("expression.size = %d\n", $7.size);
+        int defSize = (yyvsp[(5) - (8)].expression_node).size;
+        int decSize = (yyvsp[(7) - (8)].expression_node).size;
+        // compare defSize and decSize
+        // if defSize >= decSize => fill 0s
+        char* filledArray;
+        // else if  yyerror("ERROR: mismatched dimensions")
+        // printf("defSize = %d, decSize = %d\n", defSize, decSize);
+        if (defSize < decSize){
+            yyerror("ERROR: mismatched dimensions");
+            exit(0);
+        }
+        else {
+            printf("HELLO\n");
+            printf("%s\n", (yyvsp[(7) - (8)].expression_node).sval);
+            filledArray = vectorFillZeros((yyvsp[(7) - (8)].expression_node).sval, defSize);
+            printf("%s\n", filledArray);
+        }
+        
+
+        addSymbolTable((yyvsp[(2) - (8)].node).sval, (yyvsp[(2) - (8)].node).type, (yyvsp[(5) - (8)].expression_node).size);
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "    %s %s%s = %s;\n", (yyvsp[(4) - (8)].sval), (yyvsp[(2) - (8)].node).sval, (yyvsp[(5) - (8)].expression_node).sval, filledArray);
+        (yyval.sval) = strdup(buffer);
+    }
+    break;
+
+  case 9:
+#line 153 "parser.y"
     {
         // printf("declaration2\n");
         (yyvsp[(2) - (5)].node).type = strdup((yyvsp[(4) - (5)].sval));
         // TODO: symbol table
-        addSymbolTable((yyvsp[(2) - (5)].node).sval, (yyvsp[(2) - (5)].node).type);
+        addSymbolTable((yyvsp[(2) - (5)].node).sval, (yyvsp[(2) - (5)].node).type, 1);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s %s;\n", (yyvsp[(4) - (5)].sval), (yyvsp[(2) - (5)].node).sval);
         (yyval.sval) = strdup(buffer);
     }
     break;
 
-  case 9:
-#line 112 "parser.y"
+  case 10:
+#line 164 "parser.y"
+    {
+        // printf("declaration2\n");
+        (yyvsp[(2) - (6)].node).type = strdup((yyvsp[(4) - (6)].sval));
+        // TODO: symbol table
+        addSymbolTable((yyvsp[(2) - (6)].node).sval, (yyvsp[(2) - (6)].node).type, (yyvsp[(5) - (6)].expression_node).size);
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "    %s %s%s;\n", (yyvsp[(4) - (6)].sval), (yyvsp[(2) - (6)].node).sval, (yyvsp[(5) - (6)].expression_node).sval);
+        (yyval.sval) = strdup(buffer);
+    }
+    break;
+
+  case 11:
+#line 177 "parser.y"
     { 
         // printf("type int\n");
         (yyval.sval) = strdup("int"); 
     }
     break;
 
-  case 10:
-#line 118 "parser.y"
+  case 12:
+#line 183 "parser.y"
     {
         // printf("type real\n");
         (yyval.sval) = strdup("double"); 
     }
     break;
 
-  case 11:
-#line 126 "parser.y"
+  case 13:
+#line 198 "parser.y"
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "[%s]", (yyvsp[(2) - (3)].expression_node).sval);
+        (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), "string", atoi((yyvsp[(2) - (3)].expression_node).sval)};
+    }
+    break;
+
+  case 14:
+#line 207 "parser.y"
     {
         // printf("statements - empty\n");
         (yyval.sval) = strdup(""); 
     }
     break;
 
-  case 12:
-#line 132 "parser.y"
+  case 15:
+#line 213 "parser.y"
     {
         // printf("statements - statement statements\n");
         (yyval.sval) = malloc(strlen((yyvsp[(1) - (2)].sval)) + strlen((yyvsp[(2) - (2)].sval)) + 1);
@@ -1487,161 +1583,186 @@ yyreduce:
     }
     break;
 
-  case 13:
-#line 142 "parser.y"
+  case 16:
+#line 223 "parser.y"
     {
         // printf("statement - IDENTIFIER = expression ;\n");
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "    %s = %s;\n", (yyvsp[(1) - (4)].node).sval, (yyvsp[(3) - (4)].node).sval);
+        snprintf(buffer, sizeof(buffer), "    %s = %s;\n", (yyvsp[(1) - (4)].node).sval, (yyvsp[(3) - (4)].expression_node).sval);
         // printf("statement ID = expr ;\n");
         (yyval.sval) = strdup(buffer);
     }
     break;
 
-  case 14:
-#line 151 "parser.y"
+  case 17:
+#line 232 "parser.y"
     {
         // printf("statement - PRINT ( expression ) ;\n");
         char buffer[256];
-        if (strcmp((yyvsp[(3) - (5)].node).type, "int") == 0){
-            snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", (yyvsp[(3) - (5)].node).sval);
+        if (strcmp((yyvsp[(3) - (5)].expression_node).type, "int") == 0){
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", (yyvsp[(3) - (5)].expression_node).sval);
         }
-        else if (strcmp((yyvsp[(3) - (5)].node).type, "double") == 0){
-            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\", %s);\n", (yyvsp[(3) - (5)].node).sval);
+        else if (strcmp((yyvsp[(3) - (5)].expression_node).type, "double") == 0){
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\", %s);\n", (yyvsp[(3) - (5)].expression_node).sval);
         }
-        else if (strcmp((yyvsp[(3) - (5)].node).type, "string") == 0){
+        else if (strcmp((yyvsp[(3) - (5)].expression_node).type, "string") == 0){
             // printf("PRINT string\n");
-            snprintf(buffer, sizeof(buffer), "    printf(\"%s\");\n", (yyvsp[(3) - (5)].node).sval);
+            snprintf(buffer, sizeof(buffer), "    printf(\"%s\");\n", (yyvsp[(3) - (5)].expression_node).sval);
         }
         else {
             printf("ERROR: unknown type\n");
         }
         (yyval.sval) = strdup(buffer);
-    }
-    break;
-
-  case 15:
-#line 171 "parser.y"
-    {
-        // printf("statement - PRINTLN ( expression ) ;\n");
-        char buffer[256];
-        if (strcmp((yyvsp[(3) - (5)].node).type, "int") == 0){
-            snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", (yyvsp[(3) - (5)].node).sval);
-        }
-        else if (strcmp((yyvsp[(3) - (5)].node).type, "double") == 0){
-            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\\n\", %s);\n", (yyvsp[(3) - (5)].node).sval);
-        }
-        else if (strcmp((yyvsp[(3) - (5)].node).type, "string") == 0){
-            snprintf(buffer, sizeof(buffer), "    printf(\"%s\\n\");\n", (yyvsp[(3) - (5)].node).sval);
-        }
-        else {
-            printf("ERROR: unknown type\n");
-        }
-        (yyval.sval) = strdup(buffer);
-    }
-    break;
-
-  case 16:
-#line 192 "parser.y"
-    {
-        // printf("expression term\n");
-        (yyval.node) = (struct Node){(yyvsp[(1) - (1)].node).sval, (yyvsp[(1) - (1)].node).type};
-    }
-    break;
-
-  case 17:
-#line 198 "parser.y"
-    {  
-        // TODO: maintain the coercion
-        // printf("+\n");
-        char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s + %s", (yyvsp[(1) - (3)].node).sval, (yyvsp[(3) - (3)].node).sval);
-        (yyval.node) = (struct Node){strdup(buffer), (yyvsp[(1) - (3)].node).type};
     }
     break;
 
   case 18:
-#line 207 "parser.y"
+#line 252 "parser.y"
     {
-        // TODO: maintain the coercion
-        // printf("-\n");
+        // printf("statement - PRINTLN ( expression ) ;\n");
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s - %s", (yyvsp[(1) - (3)].node).sval, (yyvsp[(3) - (3)].node).sval);
-        (yyval.node) = (struct Node){strdup(buffer), (yyvsp[(1) - (3)].node).type};
-        // printf("buffer => %s, type => %s\n", buffer, $1.type);
+        if (strcmp((yyvsp[(3) - (5)].expression_node).type, "int") == 0){
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", (yyvsp[(3) - (5)].expression_node).sval);
+        }
+        else if (strcmp((yyvsp[(3) - (5)].expression_node).type, "double") == 0){
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\\n\", %s);\n", (yyvsp[(3) - (5)].expression_node).sval);
+        }
+        else if (strcmp((yyvsp[(3) - (5)].expression_node).type, "string") == 0){
+            snprintf(buffer, sizeof(buffer), "    printf(\"%s\\n\");\n", (yyvsp[(3) - (5)].expression_node).sval);
+        }
+        else {
+            printf("ERROR: unknown type\n");
+        }
+        (yyval.sval) = strdup(buffer);
     }
     break;
 
   case 19:
-#line 219 "parser.y"
+#line 273 "parser.y"
     {
-        // printf("*\n");
-        char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s * %s", (yyvsp[(1) - (3)].node).sval, (yyvsp[(3) - (3)].node).sval);
-        (yyval.node) = (struct Node){strdup(buffer), (yyvsp[(1) - (3)].node).type};
+        // printf("expression term\n");
+        (yyval.expression_node) = (struct ExpressionNode){(yyvsp[(1) - (1)].expression_node).sval, (yyvsp[(1) - (1)].expression_node).type, (yyvsp[(1) - (1)].expression_node).size};
     }
     break;
 
   case 20:
-#line 227 "parser.y"
-    {
-        // printf("/\n");
+#line 279 "parser.y"
+    {  
+        // TODO: maintain the coercion
+        // printf("+\n");
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s / %s", (yyvsp[(1) - (3)].node).sval, (yyvsp[(3) - (3)].node).sval);
-        (yyval.node) = (struct Node){strdup(buffer), (yyvsp[(1) - (3)].node).type};
+        snprintf(buffer, sizeof(buffer), "%s + %s", (yyvsp[(1) - (3)].expression_node).sval, (yyvsp[(3) - (3)].expression_node).sval);
+        (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), (yyvsp[(1) - (3)].expression_node).type, 1};
     }
     break;
 
   case 21:
-#line 235 "parser.y"
+#line 288 "parser.y"
     {
-        // printf("term - factor\n");
-        (yyval.node) = (struct Node){(yyvsp[(1) - (1)].node).sval, (yyvsp[(1) - (1)].node).type};
+        // TODO: maintain the coercion
+        // printf("-\n");
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s - %s", (yyvsp[(1) - (3)].expression_node).sval, (yyvsp[(3) - (3)].expression_node).sval);
+        (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), (yyvsp[(1) - (3)].expression_node).type, 1};
+        // printf("buffer => %s, type => %s\n", buffer, $1.type);
     }
     break;
 
   case 22:
-#line 243 "parser.y"
+#line 300 "parser.y"
     {
-        // printf("factor ( expression )\n");
+        // printf("*\n");
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "( %s )", (yyvsp[(2) - (3)].node).sval);
-        (yyval.node) = (struct Node){strdup(buffer), (yyvsp[(2) - (3)].node).type};
+        snprintf(buffer, sizeof(buffer), "%s * %s", (yyvsp[(1) - (3)].expression_node).sval, (yyvsp[(3) - (3)].expression_node).sval);
+        (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), (yyvsp[(1) - (3)].expression_node).type, 1};
     }
     break;
 
   case 23:
-#line 251 "parser.y"
+#line 308 "parser.y"
     {
-        // printf("factor - IDENTIFIER\n");
-        // printf("id => %s\n", $1.sval);
-        (yyval.node) = (struct Node){(yyvsp[(1) - (1)].node).sval, searchType((yyvsp[(1) - (1)].node).sval)};
-        // printf("done\n");
+        // printf("/\n");
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s / %s", (yyvsp[(1) - (3)].expression_node).sval, (yyvsp[(3) - (3)].expression_node).sval);
+        (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), (yyvsp[(1) - (3)].expression_node).type, 1};
     }
     break;
 
   case 24:
-#line 259 "parser.y"
+#line 316 "parser.y"
     {
-        // printf("factor - NUMBER\n");
-        // printf("num => %s\n", $1.sval);
-        // printf("type = %s\n", $1.type);
-        (yyval.node) = (struct Node){(yyvsp[(1) - (1)].node).sval, (yyvsp[(1) - (1)].node).type};
+        // printf("term - factor\n");
+        (yyval.expression_node) = (struct ExpressionNode){(yyvsp[(1) - (1)].expression_node).sval, (yyvsp[(1) - (1)].expression_node).type, (yyvsp[(1) - (1)].expression_node).size};
     }
     break;
 
   case 25:
-#line 267 "parser.y"
+#line 324 "parser.y"
+    {
+        // printf("factor ( expression )\n");
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "( %s )", (yyvsp[(2) - (3)].expression_node).sval);
+        (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), (yyvsp[(2) - (3)].expression_node).type, 1};
+    }
+    break;
+
+  case 26:
+#line 332 "parser.y"
+    {
+        // printf("factor - IDENTIFIER\n");
+        // printf("id => %s\n", $1.sval);
+        (yyval.expression_node) = (struct ExpressionNode){(yyvsp[(1) - (1)].node).sval, searchType((yyvsp[(1) - (1)].node).sval), 1};
+        // printf("done\n");
+    }
+    break;
+
+  case 27:
+#line 340 "parser.y"
+    {
+        // printf("factor - NUMBER\n");
+        // printf("num => %s\n", $1.sval);
+        // printf("type = %s\n", $1.type);
+        (yyval.expression_node) = (struct ExpressionNode){(yyvsp[(1) - (1)].node).sval, (yyvsp[(1) - (1)].node).type, 1};
+    }
+    break;
+
+  case 28:
+#line 348 "parser.y"
     {
         // printf("factor - STRING_LITERAL ;\n");
         // printf("string => %s\n", $1.sval);
-        (yyval.node) = (struct Node){(yyvsp[(1) - (1)].node).sval, (yyvsp[(1) - (1)].node).type};
+        (yyval.expression_node) = (struct ExpressionNode){(yyvsp[(1) - (1)].node).sval, (yyvsp[(1) - (1)].node).type, 1};
+    }
+    break;
+
+  case 29:
+#line 355 "parser.y"
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "{ %s }", (yyvsp[(2) - (3)].expression_node).sval);   
+        (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), "vector", (yyvsp[(2) - (3)].expression_node).size};
+    }
+    break;
+
+  case 30:
+#line 364 "parser.y"
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s, %s", (yyvsp[(1) - (3)].expression_node).sval, (yyvsp[(3) - (3)].expression_node).sval);
+        (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), strdup("vector"), (yyvsp[(1) - (3)].expression_node).size + (yyvsp[(3) - (3)].expression_node).size};
+    }
+    break;
+
+  case 31:
+#line 371 "parser.y"
+    {
+        (yyval.expression_node) = (struct ExpressionNode){strdup((yyvsp[(1) - (1)].expression_node).sval), strdup((yyvsp[(1) - (1)].expression_node).type), (yyvsp[(1) - (1)].expression_node).size};
     }
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1645 "y.tab.c"
+#line 1766 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1855,7 +1976,7 @@ yyreturn:
 }
 
 
-#line 273 "parser.y"
+#line 375 "parser.y"
 
 
 int main() {
@@ -1867,7 +1988,7 @@ void yyerror(const char *s) {
 }
 
 /* addSymbolTable(char* idName, char* type) */
-void addSymbolTable(char* name, char* type){
+void addSymbolTable(char* name, char* type, int size){
     /* printf("add Sym\n"); */
     if (symbolTableTop > 40){
         printf("symbol table is full.\n");
@@ -1876,6 +1997,7 @@ void addSymbolTable(char* name, char* type){
     if (searchType(name) == NULL){
         symbolTable[symbolTableTop].idName = name;
         symbolTable[symbolTableTop].type = type;
+        symbolTable[symbolTableTop].size = size;
         symbolTableTop += 1;
     }
     else{
@@ -1891,4 +2013,33 @@ char* searchType(char* name){
         }
     }
     return NULL;
+}
+
+char* vectorFillZeros(const char* s, int size) {
+    int count = 0;
+    const char* p = s;
+    while (*p) {
+        if (*p == ',') {
+            count++;
+        }
+        p++;
+    }
+    count++;
+    int zerosToAdd = size - count;
+    if (zerosToAdd <= 0) {
+        return strdup(s);
+    }
+    int newSize = strlen(s) + zerosToAdd * 3 + 1;
+    char* result = (char*)malloc(newSize);
+    if (!result) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(1);
+    }
+    strncpy(result, s, strlen(s) - 2);
+    result[strlen(s) - 2] = '\0';
+    for (int i = 0; i < zerosToAdd; i++) {
+        strcat(result, ", 0");
+    }
+    strcat(result, " }");
+    return result;
 }

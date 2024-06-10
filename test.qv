@@ -1,9 +1,8 @@
 fun main () {
-	var i: real = 1.5;
-	var j: real = 3.14;
-	var k: real = 2.8;
-	print(i + j * k);
-	println("\n");
-	print(i * (j + k));
-	println("\n");
+
+    var i: int;
+
+    var vi1: real[5] = {5, 3, 4, 1, 2}; // vi1[0]~vi1[4]
+	var vi2: real[5] = {2, 2, 4}; // Missing dimensions assumed 0s
+    print(vi1 * vi2);
 }
