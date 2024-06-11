@@ -271,7 +271,6 @@ expression:
     |
     expression '+' term
     {  
-        // TODO: maintain the coercion
         // printf("+\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s + %s", $1.sval, $3.sval);
@@ -280,7 +279,6 @@ expression:
     |
     expression '-' term
     {
-        // TODO: maintain the coercion
         // printf("-\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s - %s", $1.sval, $3.sval);
@@ -348,6 +346,13 @@ factor:
         // printf("factor ( expression )\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "( %s )", $2.sval);
+        $$ = (struct ExpressionNode){strdup(buffer), $2.type, 1};
+    }
+    |
+    '-' factor
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "-%s", $2.sval);
         $$ = (struct ExpressionNode){strdup(buffer), $2.type, 1};
     }
     |

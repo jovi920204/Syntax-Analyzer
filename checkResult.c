@@ -15,7 +15,11 @@ int inner_product_1d_int(int size, int *arr1, int *arr2) {
     return result;
 }
 int main() {
-    int i[2] = { 1, 2 };
-    int j[2] = {};
-    printf("%d", inner_product_1d_int(2, i, j));
+    double i = 1.5;
+    double j = 3.14;
+    double k = 2.8;
+    printf("%lf", i + j * k);
+    printf("\n");
+    printf("%lf", i * ( j + k ));
+    printf("\n");
 }
