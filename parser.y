@@ -39,11 +39,11 @@ int symbolTableTop = 0;
     }expression_node;
 };
 
-%token <sval> FUN MAIN VAR VAL INT REAL PRINT PRINTLN
+%token <sval> FUN MAIN VAR VAL INT REAL PRINT PRINTLN RET
 %token <node> NUMBER IDENTIFIER STRING_LITERAL
 %token MULTIPLY
 
-%type <sval> program function block declarations declaration type statements statement
+%type <sval> program functions function block declarations declaration type statements statement param_declarations param_declaration
 %type <expression_node> expression vector term factor array_declaration
 /* %token T_INT */
 /* 先乘除後加減，且定義由左到右運算 */
@@ -52,13 +52,7 @@ int symbolTableTop = 0;
 
 %%
 program:
-    function
-    ;
-
-function:
-    FUN MAIN '(' ')' '{'
-        block
-    '}'
+    functions
     {
         printf("-------------------------------------------------------\n");
         printf("#include <stdio.h>\n");
@@ -70,68 +64,81 @@ function:
         printf("double* add_arrays_1d_double(int size, double* arr1, double* arr2) {double* result = (double*)malloc(size * sizeof(double));if (result == NULL) {printf(\"Memory allocation failed\\n\");exit(1);}for (int i = 0; i < size; i++) {result[i] = arr1[i] + arr2[i];}return result;}        \n");
         printf("void print_id_int(int size, int* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%d }\", result[i]);else printf(\"%%d, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
         printf("void print_id_double(int size, double* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%g }\", result[i]);else printf(\"%%g, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
+
+        printf("%s\n", $1);
+    }
+    ;
+
+functions:
+    /* empty */
+    {
+        $$ = strdup("");
+    }
+    |
+    function functions
+    {
+        $$ = malloc(strlen($1) + strlen($2) + 1);
+        strcpy($$, $1);
+        strcat($$, $2);
+    }
+    ;
+
+function:
+    FUN MAIN '(' ')' '{'
+        block
+    '}'
+    {
+        printf("function main\n");
+        printf("%s\n", $6);
+        char buffer[256];
         
-        // printf("void print_id_int(int size, int* result, bool isNewline){\n");
-        // printf("    printf(\"{ \");\n");
-        // printf("    for (int i=0;i<size;i++){\n");
-        // printf("        if (i == size-1) printf(\"%%d }\", result[i]);\n");
-        // printf("        else printf(\"%%d, \", result[i]);\n");
-        // printf("    }\n");
-        // printf("    if (isNewline) printf(\"\\n\");\n");
-        // printf("}\n");
 
-        // printf("void print_id_double(int size, double* result, bool isNewline){\n");
-        // printf("    printf(\"{ \");\n");
-        // printf("    for (int i=0;i<size;i++){\n");
-        // printf("        if (i == size-1) printf(\"%%lf }\", result[i]);\n");
-        // printf("        else printf(\"%%lf, \", result[i]);\n");
-        // printf("    }\n");
-        // printf("    if (isNewline) printf(\"\\n\");\n");
+        snprintf(buffer, sizeof(buffer), "int main() {\n%s}", $6);
+        $$ = strdup(buffer);
+        // printf("int main() {\n");
+        // printf("%s", $6);
         // printf("}\n");
+    }
+    |
+    FUN IDENTIFIER '(' param_declarations ')' ':' type '{'
+        block
+    '}'
+    {
+        printf("function %s\n", $2.sval);
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s %s(%s) {\n%s\n}\n", $7, $2.sval, $4, $9);
+        $$ = strdup(buffer);
+        // "%s %s(%s){\n%s\n}", $7.sval, $2.sval, $4, $9
+    }
+    ;
 
-        // printf("double inner_product_1d_double(int size, double *arr1, double *arr2) {\n");
-        // printf("    double result = 0.0;\n");
-        // printf("    for (int i = 0; i < size; i++) {\n");
-        // printf("        result += arr1[i] * arr2[i];\n");
-        // printf("    }\n");
-        // printf("    return result;\n");
-        // printf("}\n");
+param_declarations:
+    /* empty */
+    {
+        $$ = strdup("");
+    }
+    |
+    param_declaration ',' param_declarations
+    {
+        printf("param_declaration param_declarations\n");
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s, %s", $1, $3);
+        $$ = strdup(buffer);
+    }
+    |
+    param_declaration
+    {
+        $$ = strdup($1);
+    }
+    ;
 
-        // printf("int inner_product_1d_int(int size, int *arr1, int *arr2) {\n");
-        // printf("    int result = 0.0;\n");
-        // printf("    for (int i = 0; i < size; i++) {\n");
-        // printf("        result += arr1[i] * arr2[i];\n");
-        // printf("    }\n");
-        // printf("    return result;\n");
-        // printf("}\n");
-
-        // printf("int* add_arrays_1d_int(int size, int* arr1, int* arr2) {\n");
-        // printf("    int* result = (int*)malloc(size * sizeof(int));\n");
-        // printf("    if (result == NULL) {\n");
-        // printf("        printf(\"Memory allocation failed\\n\");\n");
-        // printf("        exit(1);\n");
-        // printf("    }\n");
-        // printf("    for (int i = 0; i < size; i++) {\n");
-        // printf("        result[i] = arr1[i] + arr2[i];\n");
-        // printf("    }\n");
-        // printf("    return result;\n");
-        // printf("}\n");
-
-        // printf("double* add_arrays_1d_double(int size, double* arr1, double* arr2) {\n");
-        // printf("    double* result = (double*)malloc(size * sizeof(double));\n");
-        // printf("    if (result == NULL) {\n");
-        // printf("        printf(\"Memory allocation failed\\n\");\n");
-        // printf("        exit(1);\n");
-        // printf("    }\n");
-        // printf("    for (int i = 0; i < size; i++) {\n");
-        // printf("        result[i] = arr1[i] + arr2[i];\n");
-        // printf("    }\n");
-        // printf("    return result;\n");
-        // printf("}\n");
-
-        printf("int main() {\n");
-        printf("%s", $6);
-        printf("}\n");
+param_declaration:
+    IDENTIFIER ':' type
+    {
+        printf("param_declaration\n");
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s %s", $3, $1.sval);
+        $$ = strdup(buffer);
     }
     ;
 
@@ -340,6 +347,14 @@ statement:
         else {
             printf("ERROR: unknown type\n");
         }
+        $$ = strdup(buffer);
+    }
+    |
+    RET expression
+    {
+        printf("statement - RET expression\n");
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "return %s;\n", $2.sval);
         $$ = strdup(buffer);
     }
     ;

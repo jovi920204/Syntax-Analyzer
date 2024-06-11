@@ -1,3 +1,8 @@
+
+fun add(i: int, j: int): int{
+
+}
+
 fun main () {
 	var vi1: real[5] = {5, 3, 4, 1, 2}; // vi1[0]~vi1[4]
 	var vi2: real[5] = {2, -2, 4}; // Missing dimensions assumed 0s

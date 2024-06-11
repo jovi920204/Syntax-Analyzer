@@ -76,7 +76,7 @@ TERMINAL    (";"|","|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"=")
 "case"              { printf("keyword: %d, %s\n", T_CASE, yytext); }
 "fun"               { return (FUN); }
 "main"              { return (MAIN); }
-"ret"               { printf("keyword: %d, %s\n", T_RET, yytext); }
+"ret"               { return (RET); }
 "print"             { return (PRINT); }
 "println"           { return (PRINTLN); }
 "=="                { printf("EQUAL_CMP: %d, %s\n", T_EQUAL_CMP, yytext); }

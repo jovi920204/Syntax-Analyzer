@@ -1052,7 +1052,7 @@ YY_RULE_SETUP
 case 42:
 YY_RULE_SETUP
 #line 79 "scanner.l"
-{ printf("keyword: %d, %s\n", T_RET, yytext); }
+{ return (RET); }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP

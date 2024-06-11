@@ -57,10 +57,11 @@ extern int yydebug;
     REAL = 263,
     PRINT = 264,
     PRINTLN = 265,
-    NUMBER = 266,
-    IDENTIFIER = 267,
-    STRING_LITERAL = 268,
-    MULTIPLY = 269
+    RET = 266,
+    NUMBER = 267,
+    IDENTIFIER = 268,
+    STRING_LITERAL = 269,
+    MULTIPLY = 270
   };
 #endif
 /* Tokens.  */
@@ -72,10 +73,11 @@ extern int yydebug;
 #define REAL 263
 #define PRINT 264
 #define PRINTLN 265
-#define NUMBER 266
-#define IDENTIFIER 267
-#define STRING_LITERAL 268
-#define MULTIPLY 269
+#define RET 266
+#define NUMBER 267
+#define IDENTIFIER 268
+#define STRING_LITERAL 269
+#define MULTIPLY 270
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -96,7 +98,7 @@ union YYSTYPE
         int size;
     }expression_node;
 
-#line 100 "y.tab.h"
+#line 102 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
