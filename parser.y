@@ -4,22 +4,39 @@
 #include <string.h>
 #include <stdbool.h>
 #include "type.h"
+#define MAX_SYMBOL_TABLE_SIZE 40
+#define HASH_SIZE 101
+
 extern int yylex();
 extern char* yytext;
 void yyerror(const char *s);
-void addSymbolTable(char* name, char* type, int size);
-char* searchType(char* name);
-int searchSize(char* name);
-bool isExist(char* name);
-char* vectorFillZeros(const char* s, int size);
-char* typeCoercion(char* type1, char* type2);
 
-struct dataType{
+// Symbol Table
+typedef struct {
     char *idName;
     char *type;
     int size;
-}symbolTable[40];
-int symbolTableTop = 0;
+} Symbol;
+
+typedef struct SymbolTable {
+    Symbol symbols[MAX_SYMBOL_TABLE_SIZE];
+    int top;
+    struct SymbolTable *next;
+} SymbolTable;
+
+SymbolTable *createSymbolTable();
+void pushSymbolTable();
+void popSymbolTable();
+void addSymbolTable(char* name, char* type, int size);
+char* searchType(char* name);
+int searchSize(char* name);
+int isExist(char* name);
+void printSymbolTableStack();
+
+char* vectorFillZeros(const char* s, int size);
+char* typeCoercion(char* type1, char* type2);
+
+SymbolTable *symbolTableStack = NULL;
 
 %}
 
@@ -41,7 +58,6 @@ int symbolTableTop = 0;
 
 %token <sval> FUN MAIN VAR VAL INT REAL PRINT PRINTLN RET
 %token <node> NUMBER IDENTIFIER STRING_LITERAL
-%token MULTIPLY
 
 %type <sval> program functions function block declarations declaration type statements statement param_declarations param_declaration
 %type <expression_node> expression vector term factor array_declaration
@@ -52,20 +68,26 @@ int symbolTableTop = 0;
 
 %%
 program:
-    functions
+    { pushSymbolTable(); } functions
     {
+        { printSymbolTableStack(); popSymbolTable(); }
         printf("-------------------------------------------------------\n");
-        printf("#include <stdio.h>\n");
-        printf("#include <stdlib.h>\n");
-        printf("#include <stdbool.h>\n");
-        printf("double inner_product_1d_double(int size, double *arr1, double *arr2) { double result = 0.0;for (int i = 0; i < size; i++) {result += arr1[i] * arr2[i];}return result;}\n");
-        printf("int inner_product_1d_int(int size, int *arr1, int *arr2) {int result = 0.0;for (int i = 0; i < size; i++) {result += arr1[i] * arr2[i];}return result;}\n");
-        printf("int* add_arrays_1d_int(int size, int* arr1, int* arr2) {int* result = (int*)malloc(size * sizeof(int));if (result == NULL) {printf(\"Memory allocation failed\\n\");exit(1);}for (int i = 0; i < size; i++) {result[i] = arr1[i] + arr2[i];}return result;}\n");
-        printf("double* add_arrays_1d_double(int size, double* arr1, double* arr2) {double* result = (double*)malloc(size * sizeof(double));if (result == NULL) {printf(\"Memory allocation failed\\n\");exit(1);}for (int i = 0; i < size; i++) {result[i] = arr1[i] + arr2[i];}return result;}        \n");
-        printf("void print_id_int(int size, int* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%d }\", result[i]);else printf(\"%%d, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
-        printf("void print_id_double(int size, double* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%g }\", result[i]);else printf(\"%%g, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
+        FILE *outputFile = fopen("checkResult.c", "w");
+        if (outputFile == NULL) {
+            fprintf(stderr, "Error opening output.c file\n");
+            exit(EXIT_FAILURE);
+        }
+        fprintf(outputFile, "#include <stdio.h>\n");
+        fprintf(outputFile, "#include <stdlib.h>\n");
+        fprintf(outputFile, "#include <stdbool.h>\n");
+        fprintf(outputFile, "double inner_product_1d_double(int size, double *arr1, double *arr2) { double result = 0.0;for (int i = 0; i < size; i++) {result += arr1[i] * arr2[i];}return result;}\n");
+        fprintf(outputFile, "int inner_product_1d_int(int size, int *arr1, int *arr2) {int result = 0.0;for (int i = 0; i < size; i++) {result += arr1[i] * arr2[i];}return result;}\n");
+        fprintf(outputFile, "int* add_arrays_1d_int(int size, int* arr1, int* arr2) {int* result = (int*)malloc(size * sizeof(int));if (result == NULL) {printf(\"Memory allocation failed\\n\");exit(1);}for (int i = 0; i < size; i++) {result[i] = arr1[i] + arr2[i];}return result;}\n");
+        fprintf(outputFile, "double* add_arrays_1d_double(int size, double* arr1, double* arr2) {double* result = (double*)malloc(size * sizeof(double));if (result == NULL) {printf(\"Memory allocation failed\\n\");exit(1);}for (int i = 0; i < size; i++) {result[i] = arr1[i] + arr2[i];}return result;}        \n");
+        fprintf(outputFile, "void print_id_int(int size, int* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%d }\", result[i]);else printf(\"%%d, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
+        fprintf(outputFile, "void print_id_double(int size, double* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%g }\", result[i]);else printf(\"%%g, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
 
-        printf("%s\n", $1);
+        fprintf(outputFile, "%s\n", $2);
     }
     ;
 
@@ -85,30 +107,37 @@ functions:
 
 function:
     FUN MAIN '(' ')' '{'
+        { pushSymbolTable(); }
         block
     '}'
     {
-        printf("function main\n");
-        printf("%s\n", $6);
+        { popSymbolTable(); }
+        // printf("function main\n");
+        printf("%s\n", $7);
         char buffer[256];
-        
-
-        snprintf(buffer, sizeof(buffer), "int main() {\n%s}", $6);
+        snprintf(buffer, sizeof(buffer), "int main() {\n%s}", $7);
         $$ = strdup(buffer);
         // printf("int main() {\n");
         // printf("%s", $6);
         // printf("}\n");
     }
     |
-    FUN IDENTIFIER '(' param_declarations ')' ':' type '{'
+    FUN IDENTIFIER { pushSymbolTable(); } '(' param_declarations ')' ':' type '{'
         block
     '}'
     {
-        printf("function %s\n", $2.sval);
+        { popSymbolTable(); }
+        // printf("function %s\n", $2.sval);
+        if (isExist($2.sval)){
+            yyerror("ERROR: duplicate declaraction");
+            exit(0);
+        }
+        char* functionName = strdup($8);
+        addSymbolTable($2.sval, strcat($8, "-function"), 1);
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s %s(%s) {\n%s\n}\n", $7, $2.sval, $4, $9);
+        snprintf(buffer, sizeof(buffer), "%s %s(%s) {\n%s\n}\n", functionName, $2.sval, $5, $10);
         $$ = strdup(buffer);
-        // "%s %s(%s){\n%s\n}", $7.sval, $2.sval, $4, $9
+        // "%s %s(%s){\n%s\n}", $8.sval, $2.sval, $5, $10
     }
     ;
 
@@ -120,7 +149,7 @@ param_declarations:
     |
     param_declaration ',' param_declarations
     {
-        printf("param_declaration param_declarations\n");
+        // printf("param_declaration param_declarations\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s, %s", $1, $3);
         $$ = strdup(buffer);
@@ -135,7 +164,12 @@ param_declarations:
 param_declaration:
     IDENTIFIER ':' type
     {
-        printf("param_declaration\n");
+        // printf("param_declaration\n");
+        if (isExist($1.sval)){
+            yyerror("duplicate declaration");
+            exit(0);
+        }
+        addSymbolTable($1.sval, $3, 1);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s %s", $3, $1.sval);
         $$ = strdup(buffer);
@@ -149,6 +183,15 @@ block:
         $$ = malloc(strlen($1) + strlen($2) + 1);
         strcpy($$, $1);
         strcat($$, $2);
+    }
+    |
+    { pushSymbolTable(); } '{' block '}'
+    {
+        { popSymbolTable(); }
+        $$ = malloc(strlen("{\n}\n") + strlen($3) +1);
+        strcpy($$, "{\n");
+        strcat($$, $3);
+        strcat($$, "}\n");
     }
     ;
 
@@ -316,6 +359,14 @@ statement:
             char buffer[256];
             snprintf(buffer, sizeof(buffer), "    print_id_double(%d, %s, 0);\n", $3.size, $3.sval);
         }
+        else if (strcmp($3.type, "int-function") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", $3.sval);
+        }
+        else if (strcmp($3.type, "double-function") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%g\", %s);\n", $3.sval);
+        }
         else {
             printf("ERROR: unknown type\n");
         }
@@ -325,7 +376,7 @@ statement:
     PRINTLN '(' expression ')' ';'
     {
         // printf("statement - PRINTLN ( expression ) ;\n");
-        printf("type => %s\n", $3.type);
+        // printf("type => %s\n", $3.type);
         char buffer[256];
         if (strcmp($3.type, "int") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
@@ -344,17 +395,25 @@ statement:
             char buffer[256];
             snprintf(buffer, sizeof(buffer), "    print_id_double(%d, %s, 1);\n", $3.size, $3.sval);
         }
+        else if (strcmp($3.type, "int-function") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
+        }
+        else if (strcmp($3.type, "double-function") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%g\\n\", %s);\n", $3.sval);
+        }
         else {
             printf("ERROR: unknown type\n");
         }
         $$ = strdup(buffer);
     }
     |
-    RET expression
+    RET expression ';'
     {
-        printf("statement - RET expression\n");
+        // printf("statement - RET expression\n");
         char buffer[256];
-        snprintf(buffer, sizeof(buffer), "return %s;\n", $2.sval);
+        snprintf(buffer, sizeof(buffer), "    return %s;", $2.sval);
         $$ = strdup(buffer);
     }
     ;
@@ -515,6 +574,17 @@ factor:
         snprintf(buffer, sizeof(buffer), "{ %s }", $2.sval);   
         $$ = (struct ExpressionNode){strdup(buffer), "vector", $2.size};
     }
+    |
+    IDENTIFIER '(' vector ')'
+    {
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "%s( %s )", $1.sval, $3.sval);   
+        $$ = (struct ExpressionNode){strdup(buffer), searchType($1.sval), 1};
+        if ($$.type == NULL){
+            yyerror("not found the identifier\n");
+            exit(0);
+        }
+    }
     ;
 
 vector:
@@ -537,6 +607,22 @@ vector:
 %%
 
 int main() {
+    /* FILE *outputFile = fopen("output.c", "w");
+    if (outputFile == NULL) {
+        perror("Error opening file");
+        return EXIT_FAILURE;
+    }
+
+    if (freopen("output.c", "w", stdout) == NULL) {
+        perror("freopen");
+        return EXIT_FAILURE;
+    }
+
+    int result = yyparse();
+
+    fclose(outputFile);
+
+    return result; */
     return yyparse();
 }
 
@@ -544,50 +630,95 @@ void yyerror(const char *s) {
     fprintf(stderr, "ERROR: %s\n", s);
 }
 
-/* addSymbolTable(char* idName, char* type) */
-void addSymbolTable(char* name, char* type, int size){
-    /* printf("add Sym\n"); */
-    if (symbolTableTop > 40){
+SymbolTable *createSymbolTable() {
+    SymbolTable *newTable = (SymbolTable *)malloc(sizeof(SymbolTable));
+    if (newTable == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(1);
+    }
+    newTable->top = 0;
+    newTable->next = NULL;
+    return newTable;
+}
+
+void pushSymbolTable() {
+    SymbolTable *newTable = createSymbolTable();
+    newTable->next = symbolTableStack;
+    symbolTableStack = newTable;
+}
+
+void popSymbolTable() {
+    if (symbolTableStack != NULL) {
+        SymbolTable *oldTable = symbolTableStack;
+        symbolTableStack = symbolTableStack->next;
+        free(oldTable);
+    } else {
+        fprintf(stderr, "No symbol table to pop\n");
+    }
+}
+
+void addSymbolTable(char* name, char* type, int size) {
+    if (symbolTableStack == NULL) {
+        fprintf(stderr, "No symbol table found\n");
+        return;
+    }
+    if (symbolTableStack->top >= MAX_SYMBOL_TABLE_SIZE) {
         printf("symbol table is full.\n");
         return;
     }
-    if (searchType(name) == NULL){
-        symbolTable[symbolTableTop].idName = name;
-        symbolTable[symbolTableTop].type = type;
-        symbolTable[symbolTableTop].size = size;
-        symbolTableTop += 1;
+    for (int i = 0; i < symbolTableStack->top; i++) {
+        if (strcmp(symbolTableStack->symbols[i].idName, name) == 0) {
+            printf("Already exist.\n");
+            return;
+        }
     }
-    else{
-        printf("Already exist.\n");
-    }
-    /* printf("done\n"); */
+    symbolTableStack->symbols[symbolTableStack->top].idName = strdup(name);
+    symbolTableStack->symbols[symbolTableStack->top].type = strdup(type);
+    symbolTableStack->symbols[symbolTableStack->top].size = size;
+    symbolTableStack->top++;
 }
-/* search */
-char* searchType(char* name){
-    for (int i=0;i<symbolTableTop;i++){
-        if (strcmp(symbolTable[i].idName, name) == 0){
-            return symbolTable[i].type;
+
+char* searchType(char* name) {
+    for (SymbolTable *st = symbolTableStack; st != NULL; st = st->next) {
+        for (int i = 0; i < st->top; i++) {
+            if (strcmp(st->symbols[i].idName, name) == 0) {
+                return st->symbols[i].type;
+            }
         }
     }
     return NULL;
 }
 
-int searchSize(char* name){
-    for (int i=0;i<symbolTableTop;i++){
-        if (strcmp(symbolTable[i].idName, name) == 0){
-            return symbolTable[i].size;
+int searchSize(char* name) {
+    for (SymbolTable *st = symbolTableStack; st != NULL; st = st->next) {
+        for (int i = 0; i < st->top; i++) {
+            if (strcmp(st->symbols[i].idName, name) == 0) {
+                return st->symbols[i].size;
+            }
         }
     }
     return -1;
 }
 
-bool isExist(char* name){
-    for (int i=0;i<symbolTableTop;i++){
-        if (strcmp(symbolTable[i].idName, name) == 0){
-            return 1;
+int isExist(char* name) {
+    for (SymbolTable *st = symbolTableStack; st != NULL; st = st->next) {
+        for (int i = 0; i < st->top; i++) {
+            if (strcmp(st->symbols[i].idName, name) == 0) {
+                return 1;
+            }
         }
     }
     return 0;
+}
+
+void printSymbolTableStack() {
+    printf("Symbol Table Stack:\n");
+    for (SymbolTable *st = symbolTableStack; st != NULL; st = st->next) {
+        printf("--- Symbol Table ---\n");
+        for (int i = 0; i < st->top; i++) {
+            printf("Name: %s, Type: %s, Size: %d\n", st->symbols[i].idName, st->symbols[i].type, st->symbols[i].size);
+        }
+    }
 }
 
 char* vectorFillZeros(const char* s, int size) {

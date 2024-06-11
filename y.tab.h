@@ -60,8 +60,7 @@ extern int yydebug;
     RET = 266,
     NUMBER = 267,
     IDENTIFIER = 268,
-    STRING_LITERAL = 269,
-    MULTIPLY = 270
+    STRING_LITERAL = 269
   };
 #endif
 /* Tokens.  */
@@ -77,13 +76,12 @@ extern int yydebug;
 #define NUMBER 267
 #define IDENTIFIER 268
 #define STRING_LITERAL 269
-#define MULTIPLY 270
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 27 "parser.y"
+#line 44 "parser.y"
 
     int ival;
     float fval;
@@ -98,7 +96,7 @@ union YYSTYPE
         int size;
     }expression_node;
 
-#line 102 "y.tab.h"
+#line 100 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

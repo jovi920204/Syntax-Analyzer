@@ -1,0 +1,7 @@
+fun myAdd(i: int, j: int): int { // Add i and k, then return the result.
+  ret i + j;
+}
+
+fun main() { // For simplicity, main() always returns 0
+  println(addition(3, 5));
+}

@@ -1,13 +1,22 @@
-
-fun add(i: int, j: int): int{
-
+fun add(i: int, j: int): int { // Add i and k, then return the result.
+  ret i + j;
 }
 
-fun main () {
-	var vi1: real[5] = {5, 3, 4, 1, 2}; // vi1[0]~vi1[4]
-	var vi2: real[5] = {2, -2, 4}; // Missing dimensions assumed 0s
-	print( vi1 * vi2 ); // Inner product, output: "20"
-	print( "\n" );
-	print( vi1 + vi2 ); // Dimension-wise addition, output: "{7, 1, 8, 1, 2}"
-	print( "\n" );
+fun sub(i: int, j: int): int {
+  ret i - j;
+}
+
+fun mul(i: int, j: int): real {
+  ret i * j;
+}
+
+fun myDiv(i: int, j: int): real {
+  ret i / j;
+}
+
+fun main() { // For simplicity, main() always returns 0
+  println(add(3, 5));
+  println(sub(3, 5));
+  println(mul(3, 5));
+  println(div(3, 5));
 }

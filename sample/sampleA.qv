@@ -1,8 +1,0 @@
-fun main () {             
-    var sumOfNumber: int = 1;
-    var sum_of_number123: int = 1;
-    var _123: int = 1;      
-    var _abc123: int = 1;      
-    var asd123asd_123: real = 1;
-    var 123abc: int = 1;
-}

@@ -1,0 +1,22 @@
+fun myAdd(i: int, j: int): int { // Add i and k, then return the result.
+  ret i + j;
+}
+
+fun mySub(i: int, j: int): int {
+  ret i - j;
+}
+
+fun myMul(i: int, j: int): real {
+  ret i * j;
+}
+
+fun myDiv(i: real, j: real): real {
+  ret i / j;
+}
+
+fun main() { // For simplicity, main() always returns 0
+  println(myAdd(3, 5));
+  println(mySub(3, 5));
+  println(myMul(3, 5));
+  println(myDiv(3, 5));
+}
