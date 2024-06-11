@@ -1,8 +1,5 @@
 fun main () {
-
-    var i: int;
-
-    var vi1: real[5] = {5, 3, 4, 1, 2}; // vi1[0]~vi1[4]
-	var vi2: real[5] = {2, 2, 4}; // Missing dimensions assumed 0s
-    print(vi1 * vi2);
+	var i: real[5] = {1, 2};
+    var j: real[5] = {};
+    print((i * j));
 }

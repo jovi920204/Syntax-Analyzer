@@ -8,7 +8,9 @@ extern char* yytext;
 void yyerror(const char *s);
 void addSymbolTable(char* name, char* type, int size);
 char* searchType(char* name);
+int searchSize(char* name);
 char* vectorFillZeros(const char* s, int size);
+char* typeCoercion(char* type1, char* type2);
 
 struct dataType{
     char *idName;
@@ -56,24 +58,25 @@ function:
         block
     '}'
     {
-
-
-// double inner_product_1d(int size, double *arr1, double *arr2) {
-//     double result = 0.0;
-//     for (int i = 0; i < size; i++) {
-//         result += arr1[i] * arr2[i];
-//     }
-//     return result;
-// }        
+    
         printf("#include <stdio.h>\n");
         printf("#include <stdlib.h>\n");
-        printf("double inner_product_1d(int size, double *arr1, double *arr2) {\n");
+        printf("double inner_product_1d_double(int size, double *arr1, double *arr2) {\n");
         printf("    double result = 0.0;\n");
         printf("    for (int i = 0; i < size; i++) {\n");
         printf("        result += arr1[i] * arr2[i];\n");
         printf("    }\n");
         printf("    return result;\n");
         printf("}\n");
+
+        printf("int inner_product_1d_int(int size, int *arr1, int *arr2) {\n");
+        printf("    int result = 0.0;\n");
+        printf("    for (int i = 0; i < size; i++) {\n");
+        printf("        result += arr1[i] * arr2[i];\n");
+        printf("    }\n");
+        printf("    return result;\n");
+        printf("}\n");
+
         printf("int main() {\n");
         printf("%s", $6);
         printf("}\n");
@@ -123,27 +126,18 @@ declaration:
     {
         // printf("declaration - VAR IDENTIFIER ':' type array_declaration '=' expression ';' %s\n", $4);
         $2.type = strdup($4);
-        // printf("expression.size = %d\n", $7.size);
         int defSize = $5.size;
         int decSize = $7.size;
         // compare defSize and decSize
-        // if defSize >= decSize => fill 0s
         char* filledArray;
-        // else if  yyerror("ERROR: mismatched dimensions")
-        // printf("defSize = %d, decSize = %d\n", defSize, decSize);
         if (defSize < decSize){
             yyerror("ERROR: mismatched dimensions");
             exit(0);
         }
         else {
-            printf("HELLO\n");
-            printf("%s\n", $7.sval);
             filledArray = vectorFillZeros($7.sval, defSize);
-            printf("%s\n", filledArray);
         }
-        
-
-        addSymbolTable($2.sval, $2.type, $5.size);
+        addSymbolTable($2.sval, strcat($2.type, "-vector"), $5.size);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s %s%s = %s;\n", $4, $2.sval, $5.sval, filledArray);
         $$ = strdup(buffer);
@@ -165,7 +159,7 @@ declaration:
         // printf("declaration2\n");
         $2.type = strdup($4);
         // TODO: symbol table
-        addSymbolTable($2.sval, $2.type, $5.size);
+        addSymbolTable($2.sval, strcat($2.type, "-vector"), $5.size);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s %s%s;\n", $4, $2.sval, $5.sval);
         $$ = strdup(buffer);
@@ -281,7 +275,7 @@ expression:
         // printf("+\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s + %s", $1.sval, $3.sval);
-        $$ = (struct ExpressionNode){strdup(buffer), $1.type, 1};
+        $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
     }
     |
     expression '-' term
@@ -290,7 +284,7 @@ expression:
         // printf("-\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s - %s", $1.sval, $3.sval);
-        $$ = (struct ExpressionNode){strdup(buffer), $1.type, 1};
+        $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
         // printf("buffer => %s, type => %s\n", buffer, $1.type);
     }
     ;
@@ -299,9 +293,38 @@ term:
     term '*' factor
     {
         // printf("*\n");
-        char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s * %s", $1.sval, $3.sval);
-        $$ = (struct ExpressionNode){strdup(buffer), $1.type, 1};
+        if (strcmp($1.type, "double-vector") == 0 && strcmp($3.type, "double-vector") == 0){
+            if ($1.size == $3.size){
+                char buffer[256];
+                snprintf(buffer, sizeof(buffer), "inner_product_1d_double(%d, %s, %s)", $1.size, $1.sval, $3.sval);
+                $$ = (struct ExpressionNode){strdup(buffer), "double", 1};
+            }
+            else{
+                yyerror("ERROR: mismatched dimensions");
+                exit(0);
+            }
+        }
+        else if (strcmp($1.type, "int-vector") == 0 && strcmp($3.type, "int-vector") == 0){
+            if ($1.size == $3.size){
+                char buffer[256];
+                snprintf(buffer, sizeof(buffer), "inner_product_1d_int(%d, %s, %s)", $1.size, $1.sval, $3.sval);
+                $$ = (struct ExpressionNode){strdup(buffer), "int", 1};
+            }
+            else{
+                yyerror("ERROR: mismatched dimensions");
+                exit(0);
+            }
+        }
+        // int int, double double, int double, double int
+        else if ((strcmp($1.type, "int") == 0 || strcmp($1.type, "double") == 0) && (strcmp($3.type, "int") == 0 || strcmp($3.type, "double") == 0)){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "%s * %s", $1.sval, $3.sval);
+            $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
+        }
+        else {
+            yyerror("ERROR: Two argument types are not compatible");
+            exit(0);
+        }
     }
     |
     term '/' factor
@@ -309,7 +332,7 @@ term:
         // printf("/\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s / %s", $1.sval, $3.sval);
-        $$ = (struct ExpressionNode){strdup(buffer), $1.type, 1};
+        $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
     }
     |
     factor
@@ -332,7 +355,11 @@ factor:
     {
         // printf("factor - IDENTIFIER\n");
         // printf("id => %s\n", $1.sval);
-        $$ = (struct ExpressionNode){$1.sval, searchType($1.sval), 1};
+        $$ = (struct ExpressionNode){$1.sval, searchType($1.sval), searchSize($1.sval)};
+        if ($$.type == NULL || $$.size == -1){
+            yyerror("ERROR: Not found the identifier\n");
+            exit(0);
+        }
         // printf("done\n");
     }
     |
@@ -370,6 +397,10 @@ vector:
     expression
     {
         $$ = (struct ExpressionNode){strdup($1.sval), strdup($1.type), $1.size};
+    }
+    |
+    {
+        $$ = (struct ExpressionNode){"", "unknown", 0};
     }
     ;
 %%
@@ -410,9 +441,19 @@ char* searchType(char* name){
     return NULL;
 }
 
+int searchSize(char* name){
+    for (int i=0;i<symbolTableTop;i++){
+        if (strcmp(symbolTable[i].idName, name) == 0){
+            return symbolTable[i].size;
+        }
+    }
+    return -1;
+}
+
 char* vectorFillZeros(const char* s, int size) {
     int count = 0;
     const char* p = s;
+    int isEmpty = strcmp(s, "{  }") == 0;
     while (*p) {
         if (*p == ',') {
             count++;
@@ -420,21 +461,41 @@ char* vectorFillZeros(const char* s, int size) {
         p++;
     }
     count++;
+    if (isEmpty) {
+        count = 0;
+    }
+
     int zerosToAdd = size - count;
     if (zerosToAdd <= 0) {
         return strdup(s);
     }
+
     int newSize = strlen(s) + zerosToAdd * 3 + 1;
     char* result = (char*)malloc(newSize);
     if (!result) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(1);
     }
-    strncpy(result, s, strlen(s) - 2);
-    result[strlen(s) - 2] = '\0';
-    for (int i = 0; i < zerosToAdd; i++) {
-        strcat(result, ", 0");
+    if (isEmpty) {
+        strcpy(result, "{ ");
+    } else {
+        strncpy(result, s, strlen(s) - 2);
+        result[strlen(s) - 2] = '\0';
     }
+    for (int i = 0; i < zerosToAdd; i++) {
+        if (i != 0 || !isEmpty) {
+            strcat(result, ", ");
+        }
+        strcat(result, "0");
+    }
+
     strcat(result, " }");
     return result;
+}
+
+char* typeCoercion(char* type1, char* type2){
+    if (strcmp(type1, "double") == 0 || strcmp(type2, "double") == 0){
+        return "double";
+    }
+    return "int";
 }
