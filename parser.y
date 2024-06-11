@@ -89,8 +89,8 @@ program:
         fprintf(outputFile, "int inner_product_1d_int(int size, int *arr1, int *arr2) {int result = 0.0;for (int i = 0; i < size; i++) {result += arr1[i] * arr2[i];}return result;}\n");
         fprintf(outputFile, "int* add_arrays_1d_int(int size, int* arr1, int* arr2) {int* result = (int*)malloc(size * sizeof(int));if (result == NULL) {printf(\"Memory allocation failed\\n\");exit(1);}for (int i = 0; i < size; i++) {result[i] = arr1[i] + arr2[i];}return result;}\n");
         fprintf(outputFile, "double* add_arrays_1d_double(int size, double* arr1, double* arr2) {double* result = (double*)malloc(size * sizeof(double));if (result == NULL) {printf(\"Memory allocation failed\\n\");exit(1);}for (int i = 0; i < size; i++) {result[i] = arr1[i] + arr2[i];}return result;}        \n");
-        fprintf(outputFile, "void print_id_int(int size, int* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%d }\", result[i]);else printf(\"%%d, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
-        fprintf(outputFile, "void print_id_double(int size, double* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%g }\", result[i]);else printf(\"%%g, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
+        fprintf(outputFile, "void print_1d_int(int size, int* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%d }\", result[i]);else printf(\"%%d, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
+        fprintf(outputFile, "void print_1d_double(int size, double* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%g }\", result[i]);else printf(\"%%g, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
 
         fprintf(outputFile, "%s\n", $2);
     }
@@ -389,19 +389,15 @@ statement:
             snprintf(buffer, sizeof(buffer), "    printf(\"%s\");\n", $3.sval);
         }
         else if (strcmp($3.type, "int-vector") == 0){
-            char buffer[256];
-            snprintf(buffer, sizeof(buffer), "    print_id_int(%d, %s, 0);\n", $3.size, $3.sval);
+            snprintf(buffer, sizeof(buffer), "    print_1d_int(%d, %s, 0);\n", $3.size, $3.sval);
         }
         else if (strcmp($3.type, "double-vector") == 0){
-            char buffer[256];
-            snprintf(buffer, sizeof(buffer), "    print_id_double(%d, %s, 0);\n", $3.size, $3.sval);
+            snprintf(buffer, sizeof(buffer), "    print_1d_double(%d, %s, 0);\n", $3.size, $3.sval);
         }
         else if (strcmp($3.type, "int-function") == 0){
-            char buffer[256];
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", $3.sval);
         }
         else if (strcmp($3.type, "double-function") == 0){
-            char buffer[256];
             snprintf(buffer, sizeof(buffer), "    printf(\"%%g\", %s);\n", $3.sval);
         }
         else {
@@ -425,19 +421,15 @@ statement:
             snprintf(buffer, sizeof(buffer), "    printf(\"%s\\n\");\n", $3.sval);
         }
         else if (strcmp($3.type, "int-vector") == 0){
-            char buffer[256];
-            snprintf(buffer, sizeof(buffer), "    print_id_int(%d, %s, 1);\n", $3.size, $3.sval);
+            snprintf(buffer, sizeof(buffer), "    print_1d_int(%d, %s, 1);\n", $3.size, $3.sval);
         }
         else if (strcmp($3.type, "double-vector") == 0){
-            char buffer[256];
-            snprintf(buffer, sizeof(buffer), "    print_id_double(%d, %s, 1);\n", $3.size, $3.sval);
+            snprintf(buffer, sizeof(buffer), "    print_1d_double(%d, %s, 1);\n", $3.size, $3.sval);
         }
         else if (strcmp($3.type, "int-function") == 0){
-            char buffer[256];
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
         }
         else if (strcmp($3.type, "double-function") == 0){
-            char buffer[256];
             snprintf(buffer, sizeof(buffer), "    printf(\"%%g\\n\", %s);\n", $3.sval);
         }
         else {
