@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "type.h"
 extern int yylex();
 extern char* yytext;
@@ -9,6 +10,7 @@ void yyerror(const char *s);
 void addSymbolTable(char* name, char* type, int size);
 char* searchType(char* name);
 int searchSize(char* name);
+bool isExist(char* name);
 char* vectorFillZeros(const char* s, int size);
 char* typeCoercion(char* type1, char* type2);
 
@@ -114,8 +116,11 @@ declaration:
     VAR IDENTIFIER ':' type '=' expression ';'
     {
         // printf("declaration1 %s\n", $4);
+        if (isExist($2.sval)){
+            yyerror("ERROR: duplicate declaration");
+            exit(0);
+        }
         $2.type = strdup($4);
-        // TODO: symbol table
         addSymbolTable($2.sval, $2.type, 1);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s %s = %s;\n", $4, $2.sval, $6.sval);
@@ -125,13 +130,17 @@ declaration:
     VAR IDENTIFIER ':' type array_declaration '=' expression ';'
     {
         // printf("declaration - VAR IDENTIFIER ':' type array_declaration '=' expression ';' %s\n", $4);
+        if (isExist($2.sval)){
+            yyerror("ERROR: duplicate declaration");
+            exit(0);
+        }
         $2.type = strdup($4);
         int defSize = $5.size;
         int decSize = $7.size;
         // compare defSize and decSize
         char* filledArray;
         if (defSize < decSize){
-            yyerror("ERROR: mismatched dimensions");
+            yyerror("ERROR: too many dimensions");
             exit(0);
         }
         else {
@@ -146,8 +155,11 @@ declaration:
     VAR IDENTIFIER ':' type ';'
     {
         // printf("declaration2\n");
+        if (isExist($2.sval)){
+            yyerror("ERROR: duplicate declaration");
+            exit(0);
+        }
         $2.type = strdup($4);
-        // TODO: symbol table
         addSymbolTable($2.sval, $2.type, 1);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s %s;\n", $4, $2.sval);
@@ -157,8 +169,11 @@ declaration:
     VAR IDENTIFIER ':' type array_declaration ';'
     {
         // printf("declaration2\n");
+        if (isExist($2.sval)){
+            yyerror("ERROR: duplicate declaration");
+            exit(0);
+        }
         $2.type = strdup($4);
-        // TODO: symbol table
         addSymbolTable($2.sval, strcat($2.type, "-vector"), $5.size);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s %s%s;\n", $4, $2.sval, $5.sval);
@@ -455,6 +470,15 @@ int searchSize(char* name){
     return -1;
 }
 
+bool isExist(char* name){
+    for (int i=0;i<symbolTableTop;i++){
+        if (strcmp(symbolTable[i].idName, name) == 0){
+            return 1;
+        }
+    }
+    return 0;
+}
+
 char* vectorFillZeros(const char* s, int size) {
     int count = 0;
     const char* p = s;
@@ -504,3 +528,4 @@ char* typeCoercion(char* type1, char* type2){
     }
     return "int";
 }
+
