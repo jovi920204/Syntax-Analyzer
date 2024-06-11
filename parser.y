@@ -35,6 +35,7 @@ void printSymbolTableStack();
 
 char* vectorFillZeros(const char* s, int size);
 char* typeCoercion(char* type1, char* type2);
+bool arithmeticTypeChecking(char* type1, char* type2);
 
 SymbolTable *symbolTableStack = NULL;
 
@@ -71,7 +72,11 @@ program:
     { pushSymbolTable(); } functions
     {
         { printSymbolTableStack(); popSymbolTable(); }
-        printf("-------------------------------------------------------\n");
+        printf("-------------- Info --------------\n");
+        printf("| Compile Complete.              |\n");
+        printf("| Generating C code...           |\n");
+        printf("| Please checkout output.c file. |\n");
+        printf("----------------------------------\n");
         FILE *outputFile = fopen("checkResult.c", "w");
         if (outputFile == NULL) {
             fprintf(stderr, "Error opening output.c file\n");
@@ -113,7 +118,7 @@ function:
     {
         { popSymbolTable(); }
         // printf("function main\n");
-        printf("%s\n", $7);
+        // printf("%s\n", $7);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "int main() {\n%s}", $7);
         $$ = strdup(buffer);
@@ -279,6 +284,33 @@ declaration:
         snprintf(buffer, sizeof(buffer), "    %s %s%s;\n", $4, $2.sval, $5.sval);
         $$ = strdup(buffer);
     }
+    |
+    VAL IDENTIFIER ':' type ';'
+    {
+        // printf("declaration VAL IDENTIFIER : type ;\n");
+        if (isExist($2.sval)){
+            yyerror("duplicate declaration");
+            exit(0);
+        }
+        strcpy($2.type, "const-");
+        addSymbolTable($2.sval, strcat($2.type, $4), 1);
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "    const %s %s;\n", $4, $2.sval);
+        $$ = strdup(buffer);
+    }
+    |
+    VAL IDENTIFIER ':' type '=' expression ';'
+    {
+        if (isExist($2.sval)){
+            yyerror("duplicate declaration");
+            exit(0);
+        }
+        strcpy($2.type, "const-");
+        addSymbolTable($2.sval, strcat($2.type, $4), 1);
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "    const %s %s = %s;\n", $4, $2.sval, $6.sval);
+        $$ = strdup(buffer);
+    }
     ;
 
 type:
@@ -331,6 +363,11 @@ statement:
     IDENTIFIER '=' expression ';'
     {
         // printf("statement - IDENTIFIER = expression ;\n");
+        char* idType = searchType($1.sval);
+        if (strcmp(idType, "const-int") == 0 || strcmp(idType, "const-double") == 0){
+            yyerror("cannot assign to val type");
+            exit(0);
+        }
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s = %s;\n", $1.sval, $3.sval);
         // printf("statement ID = expr ;\n");
@@ -341,10 +378,10 @@ statement:
     {
         // printf("statement - PRINT ( expression ) ;\n");
         char buffer[256];
-        if (strcmp($3.type, "int") == 0){
+        if (strcmp($3.type, "int") == 0 || strcmp($3.type, "const-int") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", $3.sval);
         }
-        else if (strcmp($3.type, "double") == 0){
+        else if (strcmp($3.type, "double") == 0 || strcmp($3.type, "const-double") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%g\", %s);\n", $3.sval);
         }
         else if (strcmp($3.type, "string") == 0){
@@ -378,10 +415,10 @@ statement:
         // printf("statement - PRINTLN ( expression ) ;\n");
         // printf("type => %s\n", $3.type);
         char buffer[256];
-        if (strcmp($3.type, "int") == 0){
+        if (strcmp($3.type, "int") == 0 || strcmp($3.type, "const-int") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
         }
-        else if (strcmp($3.type, "double") == 0){
+        else if (strcmp($3.type, "double") == 0 || strcmp($3.type, "const-double") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%g\\n\", %s);\n", $3.sval);
         }
         else if (strcmp($3.type, "string") == 0){
@@ -451,7 +488,7 @@ expression:
             }
         }
         // int int, double double, int double, double int
-        else if ((strcmp($1.type, "int") == 0 || strcmp($1.type, "double") == 0) && (strcmp($3.type, "int") == 0 || strcmp($3.type, "double") == 0)){
+        else if (arithmeticTypeChecking($1.type, $3.type)){
             char buffer[256];
             snprintf(buffer, sizeof(buffer), "%s + %s", $1.sval, $3.sval);
             $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
@@ -465,10 +502,16 @@ expression:
     expression '-' term
     {
         // printf("-\n");
-        char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s - %s", $1.sval, $3.sval);
-        $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
-        // printf("buffer => %s, type => %s\n", buffer, $1.type);
+        if (arithmeticTypeChecking($1.type, $3.type)){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "%s - %s", $1.sval, $3.sval);
+            $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
+            // printf("buffer => %s, type => %s\n", buffer, $1.type);
+        }
+        else {
+            yyerror("two argument types are not compatible");
+            exit(0);
+        }
     }
     ;
 
@@ -499,7 +542,7 @@ term:
             }
         }
         // int int, double double, int double, double int
-        else if ((strcmp($1.type, "int") == 0 || strcmp($1.type, "double") == 0) && (strcmp($3.type, "int") == 0 || strcmp($3.type, "double") == 0)){
+        else if (arithmeticTypeChecking($1.type, $3.type)){
             char buffer[256];
             snprintf(buffer, sizeof(buffer), "%s * %s", $1.sval, $3.sval);
             $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
@@ -513,9 +556,15 @@ term:
     term '/' factor
     {
         // printf("/\n");
-        char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s / %s", $1.sval, $3.sval);
-        $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
+        if (arithmeticTypeChecking($1.type, $3.type)){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "%s / %s", $1.sval, $3.sval);
+            $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
+        }
+        else{
+            yyerror("Two argument types are not compatible");
+            exit(0);
+        }
     }
     |
     factor
@@ -607,22 +656,6 @@ vector:
 %%
 
 int main() {
-    /* FILE *outputFile = fopen("output.c", "w");
-    if (outputFile == NULL) {
-        perror("Error opening file");
-        return EXIT_FAILURE;
-    }
-
-    if (freopen("output.c", "w", stdout) == NULL) {
-        perror("freopen");
-        return EXIT_FAILURE;
-    }
-
-    int result = yyparse();
-
-    fclose(outputFile);
-
-    return result; */
     return yyparse();
 }
 
@@ -771,3 +804,20 @@ char* typeCoercion(char* type1, char* type2){
     return "int";
 }
 
+bool arithmeticTypeChecking(char* type1, char* type2){
+    /* printf("type1 => %s, type2 => %s\n", type1, type2); */
+    if ((
+        strcmp(type1, "int") == 0 || strcmp(type1, "double") == 0 
+        ||
+        strcmp(type1, "const-int") == 0 || strcmp(type1, "const-double") == 0 
+        ) 
+    && 
+        (
+        strcmp(type2, "int") == 0 || strcmp(type2, "double") == 0 
+        ||
+        strcmp(type2, "const-int") == 0 || strcmp(type2, "const-double") == 0 
+        )){
+            return 1;
+        }
+    return 0;
+}

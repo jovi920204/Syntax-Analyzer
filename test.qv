@@ -1,22 +1,4 @@
-fun add(i: int, j: int): int { // Add i and k, then return the result.
-  ret i + j;
-}
-
-fun sub(i: int, j: int): int {
-  ret i - j;
-}
-
-fun mul(i: int, j: int): real {
-  ret i * j;
-}
-
-fun myDiv(i: int, j: int): real {
-  ret i / j;
-}
-
-fun main() { // For simplicity, main() always returns 0
-  println(add(3, 5));
-  println(sub(3, 5));
-  println(mul(3, 5));
-  println(div(3, 5));
+fun main(){
+	val i : int = 10;
+	print(i)
 }
