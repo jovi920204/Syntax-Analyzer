@@ -60,24 +60,74 @@ function:
         block
     '}'
     {
-    
+        printf("-------------------------------------------------------\n");
         printf("#include <stdio.h>\n");
         printf("#include <stdlib.h>\n");
-        printf("double inner_product_1d_double(int size, double *arr1, double *arr2) {\n");
-        printf("    double result = 0.0;\n");
-        printf("    for (int i = 0; i < size; i++) {\n");
-        printf("        result += arr1[i] * arr2[i];\n");
-        printf("    }\n");
-        printf("    return result;\n");
-        printf("}\n");
+        printf("#include <stdbool.h>\n");
+        printf("double inner_product_1d_double(int size, double *arr1, double *arr2) { double result = 0.0;for (int i = 0; i < size; i++) {result += arr1[i] * arr2[i];}return result;}\n");
+        printf("int inner_product_1d_int(int size, int *arr1, int *arr2) {int result = 0.0;for (int i = 0; i < size; i++) {result += arr1[i] * arr2[i];}return result;}\n");
+        printf("int* add_arrays_1d_int(int size, int* arr1, int* arr2) {int* result = (int*)malloc(size * sizeof(int));if (result == NULL) {printf(\"Memory allocation failed\\n\");exit(1);}for (int i = 0; i < size; i++) {result[i] = arr1[i] + arr2[i];}return result;}\n");
+        printf("double* add_arrays_1d_double(int size, double* arr1, double* arr2) {double* result = (double*)malloc(size * sizeof(double));if (result == NULL) {printf(\"Memory allocation failed\\n\");exit(1);}for (int i = 0; i < size; i++) {result[i] = arr1[i] + arr2[i];}return result;}        \n");
+        printf("void print_id_int(int size, int* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%d }\", result[i]);else printf(\"%%d, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
+        printf("void print_id_double(int size, double* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%g }\", result[i]);else printf(\"%%g, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
+        
+        // printf("void print_id_int(int size, int* result, bool isNewline){\n");
+        // printf("    printf(\"{ \");\n");
+        // printf("    for (int i=0;i<size;i++){\n");
+        // printf("        if (i == size-1) printf(\"%%d }\", result[i]);\n");
+        // printf("        else printf(\"%%d, \", result[i]);\n");
+        // printf("    }\n");
+        // printf("    if (isNewline) printf(\"\\n\");\n");
+        // printf("}\n");
 
-        printf("int inner_product_1d_int(int size, int *arr1, int *arr2) {\n");
-        printf("    int result = 0.0;\n");
-        printf("    for (int i = 0; i < size; i++) {\n");
-        printf("        result += arr1[i] * arr2[i];\n");
-        printf("    }\n");
-        printf("    return result;\n");
-        printf("}\n");
+        // printf("void print_id_double(int size, double* result, bool isNewline){\n");
+        // printf("    printf(\"{ \");\n");
+        // printf("    for (int i=0;i<size;i++){\n");
+        // printf("        if (i == size-1) printf(\"%%lf }\", result[i]);\n");
+        // printf("        else printf(\"%%lf, \", result[i]);\n");
+        // printf("    }\n");
+        // printf("    if (isNewline) printf(\"\\n\");\n");
+        // printf("}\n");
+
+        // printf("double inner_product_1d_double(int size, double *arr1, double *arr2) {\n");
+        // printf("    double result = 0.0;\n");
+        // printf("    for (int i = 0; i < size; i++) {\n");
+        // printf("        result += arr1[i] * arr2[i];\n");
+        // printf("    }\n");
+        // printf("    return result;\n");
+        // printf("}\n");
+
+        // printf("int inner_product_1d_int(int size, int *arr1, int *arr2) {\n");
+        // printf("    int result = 0.0;\n");
+        // printf("    for (int i = 0; i < size; i++) {\n");
+        // printf("        result += arr1[i] * arr2[i];\n");
+        // printf("    }\n");
+        // printf("    return result;\n");
+        // printf("}\n");
+
+        // printf("int* add_arrays_1d_int(int size, int* arr1, int* arr2) {\n");
+        // printf("    int* result = (int*)malloc(size * sizeof(int));\n");
+        // printf("    if (result == NULL) {\n");
+        // printf("        printf(\"Memory allocation failed\\n\");\n");
+        // printf("        exit(1);\n");
+        // printf("    }\n");
+        // printf("    for (int i = 0; i < size; i++) {\n");
+        // printf("        result[i] = arr1[i] + arr2[i];\n");
+        // printf("    }\n");
+        // printf("    return result;\n");
+        // printf("}\n");
+
+        // printf("double* add_arrays_1d_double(int size, double* arr1, double* arr2) {\n");
+        // printf("    double* result = (double*)malloc(size * sizeof(double));\n");
+        // printf("    if (result == NULL) {\n");
+        // printf("        printf(\"Memory allocation failed\\n\");\n");
+        // printf("        exit(1);\n");
+        // printf("    }\n");
+        // printf("    for (int i = 0; i < size; i++) {\n");
+        // printf("        result[i] = arr1[i] + arr2[i];\n");
+        // printf("    }\n");
+        // printf("    return result;\n");
+        // printf("}\n");
 
         printf("int main() {\n");
         printf("%s", $6);
@@ -117,7 +167,7 @@ declaration:
     {
         // printf("declaration1 %s\n", $4);
         if (isExist($2.sval)){
-            yyerror("ERROR: duplicate declaration");
+            yyerror("duplicate declaration");
             exit(0);
         }
         $2.type = strdup($4);
@@ -131,7 +181,7 @@ declaration:
     {
         // printf("declaration - VAR IDENTIFIER ':' type array_declaration '=' expression ';' %s\n", $4);
         if (isExist($2.sval)){
-            yyerror("ERROR: duplicate declaration");
+            yyerror("duplicate declaration");
             exit(0);
         }
         $2.type = strdup($4);
@@ -140,7 +190,7 @@ declaration:
         // compare defSize and decSize
         char* filledArray;
         if (defSize < decSize){
-            yyerror("ERROR: too many dimensions");
+            yyerror("too many dimensions");
             exit(0);
         }
         else {
@@ -156,7 +206,7 @@ declaration:
     {
         // printf("declaration2\n");
         if (isExist($2.sval)){
-            yyerror("ERROR: duplicate declaration");
+            yyerror("duplicate declaration");
             exit(0);
         }
         $2.type = strdup($4);
@@ -170,7 +220,7 @@ declaration:
     {
         // printf("declaration2\n");
         if (isExist($2.sval)){
-            yyerror("ERROR: duplicate declaration");
+            yyerror("duplicate declaration");
             exit(0);
         }
         $2.type = strdup($4);
@@ -245,11 +295,19 @@ statement:
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", $3.sval);
         }
         else if (strcmp($3.type, "double") == 0){
-            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\", %s);\n", $3.sval);
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%g\", %s);\n", $3.sval);
         }
         else if (strcmp($3.type, "string") == 0){
             // printf("PRINT string\n");
             snprintf(buffer, sizeof(buffer), "    printf(\"%s\");\n", $3.sval);
+        }
+        else if (strcmp($3.type, "int-vector") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    print_id_int(%d, %s, 0);\n", $3.size, $3.sval);
+        }
+        else if (strcmp($3.type, "double-vector") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    print_id_double(%d, %s, 0);\n", $3.size, $3.sval);
         }
         else {
             printf("ERROR: unknown type\n");
@@ -260,15 +318,24 @@ statement:
     PRINTLN '(' expression ')' ';'
     {
         // printf("statement - PRINTLN ( expression ) ;\n");
+        printf("type => %s\n", $3.type);
         char buffer[256];
         if (strcmp($3.type, "int") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
         }
         else if (strcmp($3.type, "double") == 0){
-            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\\n\", %s);\n", $3.sval);
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%g\\n\", %s);\n", $3.sval);
         }
         else if (strcmp($3.type, "string") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%s\\n\");\n", $3.sval);
+        }
+        else if (strcmp($3.type, "int-vector") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    print_id_int(%d, %s, 1);\n", $3.size, $3.sval);
+        }
+        else if (strcmp($3.type, "double-vector") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    print_id_double(%d, %s, 1);\n", $3.size, $3.sval);
         }
         else {
             printf("ERROR: unknown type\n");
@@ -287,9 +354,38 @@ expression:
     expression '+' term
     {  
         // printf("+\n");
-        char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s + %s", $1.sval, $3.sval);
-        $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
+        if (strcmp($1.type, "double-vector") == 0 && strcmp($3.type, "double-vector") == 0){
+            if ($1.size == $3.size){
+                char buffer[256];
+                snprintf(buffer, sizeof(buffer), "add_arrays_1d_double(%d, %s, %s)", $1.size, $1.sval, $3.sval);
+                $$ = (struct ExpressionNode){strdup(buffer), "double-vector", $1.size};
+            }
+            else{
+                yyerror("mismatched dimensions");
+                exit(0);
+            }
+        }
+        else if (strcmp($1.type, "int-vector") == 0 && strcmp($3.type, "int-vector") == 0){
+            if ($1.size == $3.size){
+                char buffer[256];
+                snprintf(buffer, sizeof(buffer), "add_arrays_1d_int(%d, %s, %s)", $1.size, $1.sval, $3.sval);
+                $$ = (struct ExpressionNode){strdup(buffer), "int-vector", $1.size};
+            }
+            else{
+                yyerror("mismatched dimensions");
+                exit(0);
+            }
+        }
+        // int int, double double, int double, double int
+        else if ((strcmp($1.type, "int") == 0 || strcmp($1.type, "double") == 0) && (strcmp($3.type, "int") == 0 || strcmp($3.type, "double") == 0)){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "%s + %s", $1.sval, $3.sval);
+            $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
+        }
+        else {
+            yyerror("two argument types are not compatible");
+            exit(0);
+        }
     }
     |
     expression '-' term
@@ -313,7 +409,7 @@ term:
                 $$ = (struct ExpressionNode){strdup(buffer), "double", 1};
             }
             else{
-                yyerror("ERROR: mismatched dimensions");
+                yyerror("mismatched dimensions");
                 exit(0);
             }
         }
@@ -324,7 +420,7 @@ term:
                 $$ = (struct ExpressionNode){strdup(buffer), "int", 1};
             }
             else{
-                yyerror("ERROR: mismatched dimensions");
+                yyerror("mismatched dimensions");
                 exit(0);
             }
         }
@@ -335,7 +431,7 @@ term:
             $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
         }
         else {
-            yyerror("ERROR: Two argument types are not compatible");
+            yyerror("Two argument types are not compatible");
             exit(0);
         }
     }
@@ -377,7 +473,7 @@ factor:
         // printf("id => %s\n", $1.sval);
         $$ = (struct ExpressionNode){$1.sval, searchType($1.sval), searchSize($1.sval)};
         if ($$.type == NULL || $$.size == -1){
-            yyerror("ERROR: Not found the identifier\n");
+            yyerror("not found the identifier\n");
             exit(0);
         }
         // printf("done\n");
@@ -430,7 +526,7 @@ int main() {
 }
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
+    fprintf(stderr, "ERROR: %s\n", s);
 }
 
 /* addSymbolTable(char* idName, char* type) */

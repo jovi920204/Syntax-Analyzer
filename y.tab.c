@@ -562,10 +562,10 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    55,    55,    59,    89,   100,   105,   116,   130,   155,
-     170,   187,   193,   208,   218,   223,   233,   242,   262,   283,
-     289,   297,   308,   345,   353,   361,   369,   376,   388,   396,
-     403,   412,   419,   424
+       0,    55,    55,    59,   139,   150,   155,   166,   180,   205,
+     219,   235,   241,   256,   266,   271,   281,   290,   318,   348,
+     354,   391,   402,   439,   447,   455,   463,   470,   482,   490,
+     497,   506,   513,   518
 };
 #endif
 
@@ -1402,69 +1402,119 @@ yyreduce:
   case 3:
 #line 62 "parser.y"
     {
-    
+        printf("-------------------------------------------------------\n");
         printf("#include <stdio.h>\n");
         printf("#include <stdlib.h>\n");
-        printf("double inner_product_1d_double(int size, double *arr1, double *arr2) {\n");
-        printf("    double result = 0.0;\n");
-        printf("    for (int i = 0; i < size; i++) {\n");
-        printf("        result += arr1[i] * arr2[i];\n");
-        printf("    }\n");
-        printf("    return result;\n");
-        printf("}\n");
+        printf("#include <stdbool.h>\n");
+        printf("double inner_product_1d_double(int size, double *arr1, double *arr2) { double result = 0.0;for (int i = 0; i < size; i++) {result += arr1[i] * arr2[i];}return result;}\n");
+        printf("int inner_product_1d_int(int size, int *arr1, int *arr2) {int result = 0.0;for (int i = 0; i < size; i++) {result += arr1[i] * arr2[i];}return result;}\n");
+        printf("int* add_arrays_1d_int(int size, int* arr1, int* arr2) {int* result = (int*)malloc(size * sizeof(int));if (result == NULL) {printf(\"Memory allocation failed\\n\");exit(1);}for (int i = 0; i < size; i++) {result[i] = arr1[i] + arr2[i];}return result;}\n");
+        printf("double* add_arrays_1d_double(int size, double* arr1, double* arr2) {double* result = (double*)malloc(size * sizeof(double));if (result == NULL) {printf(\"Memory allocation failed\\n\");exit(1);}for (int i = 0; i < size; i++) {result[i] = arr1[i] + arr2[i];}return result;}        \n");
+        printf("void print_id_int(int size, int* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%d }\", result[i]);else printf(\"%%d, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
+        printf("void print_id_double(int size, double* result, bool isNewline){printf(\"{ \");for (int i=0;i<size;i++){if (i == size-1) printf(\"%%g }\", result[i]);else printf(\"%%g, \", result[i]);}if (isNewline) printf(\"\\n\");}\n");
+        
+        // printf("void print_id_int(int size, int* result, bool isNewline){\n");
+        // printf("    printf(\"{ \");\n");
+        // printf("    for (int i=0;i<size;i++){\n");
+        // printf("        if (i == size-1) printf(\"%%d }\", result[i]);\n");
+        // printf("        else printf(\"%%d, \", result[i]);\n");
+        // printf("    }\n");
+        // printf("    if (isNewline) printf(\"\\n\");\n");
+        // printf("}\n");
 
-        printf("int inner_product_1d_int(int size, int *arr1, int *arr2) {\n");
-        printf("    int result = 0.0;\n");
-        printf("    for (int i = 0; i < size; i++) {\n");
-        printf("        result += arr1[i] * arr2[i];\n");
-        printf("    }\n");
-        printf("    return result;\n");
-        printf("}\n");
+        // printf("void print_id_double(int size, double* result, bool isNewline){\n");
+        // printf("    printf(\"{ \");\n");
+        // printf("    for (int i=0;i<size;i++){\n");
+        // printf("        if (i == size-1) printf(\"%%lf }\", result[i]);\n");
+        // printf("        else printf(\"%%lf, \", result[i]);\n");
+        // printf("    }\n");
+        // printf("    if (isNewline) printf(\"\\n\");\n");
+        // printf("}\n");
+
+        // printf("double inner_product_1d_double(int size, double *arr1, double *arr2) {\n");
+        // printf("    double result = 0.0;\n");
+        // printf("    for (int i = 0; i < size; i++) {\n");
+        // printf("        result += arr1[i] * arr2[i];\n");
+        // printf("    }\n");
+        // printf("    return result;\n");
+        // printf("}\n");
+
+        // printf("int inner_product_1d_int(int size, int *arr1, int *arr2) {\n");
+        // printf("    int result = 0.0;\n");
+        // printf("    for (int i = 0; i < size; i++) {\n");
+        // printf("        result += arr1[i] * arr2[i];\n");
+        // printf("    }\n");
+        // printf("    return result;\n");
+        // printf("}\n");
+
+        // printf("int* add_arrays_1d_int(int size, int* arr1, int* arr2) {\n");
+        // printf("    int* result = (int*)malloc(size * sizeof(int));\n");
+        // printf("    if (result == NULL) {\n");
+        // printf("        printf(\"Memory allocation failed\\n\");\n");
+        // printf("        exit(1);\n");
+        // printf("    }\n");
+        // printf("    for (int i = 0; i < size; i++) {\n");
+        // printf("        result[i] = arr1[i] + arr2[i];\n");
+        // printf("    }\n");
+        // printf("    return result;\n");
+        // printf("}\n");
+
+        // printf("double* add_arrays_1d_double(int size, double* arr1, double* arr2) {\n");
+        // printf("    double* result = (double*)malloc(size * sizeof(double));\n");
+        // printf("    if (result == NULL) {\n");
+        // printf("        printf(\"Memory allocation failed\\n\");\n");
+        // printf("        exit(1);\n");
+        // printf("    }\n");
+        // printf("    for (int i = 0; i < size; i++) {\n");
+        // printf("        result[i] = arr1[i] + arr2[i];\n");
+        // printf("    }\n");
+        // printf("    return result;\n");
+        // printf("}\n");
 
         printf("int main() {\n");
         printf("%s", (yyvsp[-1].sval));
         printf("}\n");
     }
-#line 1429 "y.tab.c"
+#line 1479 "y.tab.c"
     break;
 
   case 4:
-#line 90 "parser.y"
+#line 140 "parser.y"
     {
         // printf("block - declarations statements\n");
         (yyval.sval) = malloc(strlen((yyvsp[-1].sval)) + strlen((yyvsp[0].sval)) + 1);
         strcpy((yyval.sval), (yyvsp[-1].sval));
         strcat((yyval.sval), (yyvsp[0].sval));
     }
-#line 1440 "y.tab.c"
+#line 1490 "y.tab.c"
     break;
 
   case 5:
-#line 100 "parser.y"
+#line 150 "parser.y"
     {
         // printf("declarations - empty\n");
         (yyval.sval) = strdup(""); 
     }
-#line 1449 "y.tab.c"
+#line 1499 "y.tab.c"
     break;
 
   case 6:
-#line 106 "parser.y"
+#line 156 "parser.y"
     {
         // printf("declarations - declaration declarations\n");
         (yyval.sval) = malloc(strlen((yyvsp[-1].sval)) + strlen((yyvsp[0].sval)) + 1);
         strcpy((yyval.sval), (yyvsp[-1].sval));
         strcat((yyval.sval), (yyvsp[0].sval));
     }
-#line 1460 "y.tab.c"
+#line 1510 "y.tab.c"
     break;
 
   case 7:
-#line 117 "parser.y"
+#line 167 "parser.y"
     {
         // printf("declaration1 %s\n", $4);
         if (isExist((yyvsp[-5].node).sval)){
-            yyerror("ERROR: duplicate declaration");
+            yyerror("duplicate declaration");
             exit(0);
         }
         (yyvsp[-5].node).type = strdup((yyvsp[-3].sval));
@@ -1473,15 +1523,15 @@ yyreduce:
         snprintf(buffer, sizeof(buffer), "    %s %s = %s;\n", (yyvsp[-3].sval), (yyvsp[-5].node).sval, (yyvsp[-1].expression_node).sval);
         (yyval.sval) = strdup(buffer);
     }
-#line 1477 "y.tab.c"
+#line 1527 "y.tab.c"
     break;
 
   case 8:
-#line 131 "parser.y"
+#line 181 "parser.y"
     {
         // printf("declaration - VAR IDENTIFIER ':' type array_declaration '=' expression ';' %s\n", $4);
         if (isExist((yyvsp[-6].node).sval)){
-            yyerror("ERROR: duplicate declaration");
+            yyerror("duplicate declaration");
             exit(0);
         }
         (yyvsp[-6].node).type = strdup((yyvsp[-4].sval));
@@ -1490,7 +1540,7 @@ yyreduce:
         // compare defSize and decSize
         char* filledArray;
         if (defSize < decSize){
-            yyerror("ERROR: too many dimensions");
+            yyerror("too many dimensions");
             exit(0);
         }
         else {
@@ -1501,95 +1551,93 @@ yyreduce:
         snprintf(buffer, sizeof(buffer), "    %s %s%s = %s;\n", (yyvsp[-4].sval), (yyvsp[-6].node).sval, (yyvsp[-3].expression_node).sval, filledArray);
         (yyval.sval) = strdup(buffer);
     }
-#line 1505 "y.tab.c"
+#line 1555 "y.tab.c"
     break;
 
   case 9:
-#line 156 "parser.y"
+#line 206 "parser.y"
     {
         // printf("declaration2\n");
         if (isExist((yyvsp[-3].node).sval)){
-            yyerror("ERROR: duplicate declaration");
+            yyerror("duplicate declaration");
             exit(0);
         }
         (yyvsp[-3].node).type = strdup((yyvsp[-1].sval));
-        // TODO: symbol table
         addSymbolTable((yyvsp[-3].node).sval, (yyvsp[-3].node).type, 1);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s %s;\n", (yyvsp[-1].sval), (yyvsp[-3].node).sval);
         (yyval.sval) = strdup(buffer);
     }
-#line 1523 "y.tab.c"
+#line 1572 "y.tab.c"
     break;
 
   case 10:
-#line 171 "parser.y"
+#line 220 "parser.y"
     {
         // printf("declaration2\n");
         if (isExist((yyvsp[-4].node).sval)){
-            yyerror("ERROR: duplicate declaration");
+            yyerror("duplicate declaration");
             exit(0);
         }
         (yyvsp[-4].node).type = strdup((yyvsp[-2].sval));
-        // TODO: symbol table
         addSymbolTable((yyvsp[-4].node).sval, strcat((yyvsp[-4].node).type, "-vector"), (yyvsp[-1].expression_node).size);
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "    %s %s%s;\n", (yyvsp[-2].sval), (yyvsp[-4].node).sval, (yyvsp[-1].expression_node).sval);
         (yyval.sval) = strdup(buffer);
     }
-#line 1541 "y.tab.c"
+#line 1589 "y.tab.c"
     break;
 
   case 11:
-#line 188 "parser.y"
+#line 236 "parser.y"
     { 
         // printf("type int\n");
         (yyval.sval) = strdup("int"); 
     }
-#line 1550 "y.tab.c"
+#line 1598 "y.tab.c"
     break;
 
   case 12:
-#line 194 "parser.y"
+#line 242 "parser.y"
     {
         // printf("type real\n");
         (yyval.sval) = strdup("double"); 
     }
-#line 1559 "y.tab.c"
+#line 1607 "y.tab.c"
     break;
 
   case 13:
-#line 209 "parser.y"
+#line 257 "parser.y"
     {
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "[%s]", (yyvsp[-1].expression_node).sval);
         (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), "string", atoi((yyvsp[-1].expression_node).sval)};
     }
-#line 1569 "y.tab.c"
+#line 1617 "y.tab.c"
     break;
 
   case 14:
-#line 218 "parser.y"
+#line 266 "parser.y"
     {
         // printf("statements - empty\n");
         (yyval.sval) = strdup(""); 
     }
-#line 1578 "y.tab.c"
+#line 1626 "y.tab.c"
     break;
 
   case 15:
-#line 224 "parser.y"
+#line 272 "parser.y"
     {
         // printf("statements - statement statements\n");
         (yyval.sval) = malloc(strlen((yyvsp[-1].sval)) + strlen((yyvsp[0].sval)) + 1);
         strcpy((yyval.sval), (yyvsp[-1].sval));
         strcat((yyval.sval), (yyvsp[0].sval));
     }
-#line 1589 "y.tab.c"
+#line 1637 "y.tab.c"
     break;
 
   case 16:
-#line 234 "parser.y"
+#line 282 "parser.y"
     {
         // printf("statement - IDENTIFIER = expression ;\n");
         char buffer[256];
@@ -1597,11 +1645,11 @@ yyreduce:
         // printf("statement ID = expr ;\n");
         (yyval.sval) = strdup(buffer);
     }
-#line 1601 "y.tab.c"
+#line 1649 "y.tab.c"
     break;
 
   case 17:
-#line 243 "parser.y"
+#line 291 "parser.y"
     {
         // printf("statement - PRINT ( expression ) ;\n");
         char buffer[256];
@@ -1609,64 +1657,110 @@ yyreduce:
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", (yyvsp[-2].expression_node).sval);
         }
         else if (strcmp((yyvsp[-2].expression_node).type, "double") == 0){
-            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\", %s);\n", (yyvsp[-2].expression_node).sval);
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%g\", %s);\n", (yyvsp[-2].expression_node).sval);
         }
         else if (strcmp((yyvsp[-2].expression_node).type, "string") == 0){
             // printf("PRINT string\n");
             snprintf(buffer, sizeof(buffer), "    printf(\"%s\");\n", (yyvsp[-2].expression_node).sval);
         }
+        else if (strcmp((yyvsp[-2].expression_node).type, "int-vector") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    print_id_int(%d, %s, 0);\n", (yyvsp[-2].expression_node).size, (yyvsp[-2].expression_node).sval);
+        }
+        else if (strcmp((yyvsp[-2].expression_node).type, "double-vector") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    print_id_double(%d, %s, 0);\n", (yyvsp[-2].expression_node).size, (yyvsp[-2].expression_node).sval);
+        }
         else {
             printf("ERROR: unknown type\n");
         }
         (yyval.sval) = strdup(buffer);
     }
-#line 1624 "y.tab.c"
+#line 1680 "y.tab.c"
     break;
 
   case 18:
-#line 263 "parser.y"
+#line 319 "parser.y"
     {
         // printf("statement - PRINTLN ( expression ) ;\n");
+        printf("type => %s\n", (yyvsp[-2].expression_node).type);
         char buffer[256];
         if (strcmp((yyvsp[-2].expression_node).type, "int") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", (yyvsp[-2].expression_node).sval);
         }
         else if (strcmp((yyvsp[-2].expression_node).type, "double") == 0){
-            snprintf(buffer, sizeof(buffer), "    printf(\"%%lf\\n\", %s);\n", (yyvsp[-2].expression_node).sval);
+            snprintf(buffer, sizeof(buffer), "    printf(\"%%g\\n\", %s);\n", (yyvsp[-2].expression_node).sval);
         }
         else if (strcmp((yyvsp[-2].expression_node).type, "string") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%s\\n\");\n", (yyvsp[-2].expression_node).sval);
+        }
+        else if (strcmp((yyvsp[-2].expression_node).type, "int-vector") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    print_id_int(%d, %s, 1);\n", (yyvsp[-2].expression_node).size, (yyvsp[-2].expression_node).sval);
+        }
+        else if (strcmp((yyvsp[-2].expression_node).type, "double-vector") == 0){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "    print_id_double(%d, %s, 1);\n", (yyvsp[-2].expression_node).size, (yyvsp[-2].expression_node).sval);
         }
         else {
             printf("ERROR: unknown type\n");
         }
         (yyval.sval) = strdup(buffer);
     }
-#line 1646 "y.tab.c"
+#line 1711 "y.tab.c"
     break;
 
   case 19:
-#line 284 "parser.y"
+#line 349 "parser.y"
     {
         // printf("expression term\n");
         (yyval.expression_node) = (struct ExpressionNode){(yyvsp[0].expression_node).sval, (yyvsp[0].expression_node).type, (yyvsp[0].expression_node).size};
     }
-#line 1655 "y.tab.c"
+#line 1720 "y.tab.c"
     break;
 
   case 20:
-#line 290 "parser.y"
+#line 355 "parser.y"
     {  
         // printf("+\n");
-        char buffer[256];
-        snprintf(buffer, sizeof(buffer), "%s + %s", (yyvsp[-2].expression_node).sval, (yyvsp[0].expression_node).sval);
-        (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), typeCoercion((yyvsp[-2].expression_node).type, (yyvsp[0].expression_node).type), 1};
+        if (strcmp((yyvsp[-2].expression_node).type, "double-vector") == 0 && strcmp((yyvsp[0].expression_node).type, "double-vector") == 0){
+            if ((yyvsp[-2].expression_node).size == (yyvsp[0].expression_node).size){
+                char buffer[256];
+                snprintf(buffer, sizeof(buffer), "add_arrays_1d_double(%d, %s, %s)", (yyvsp[-2].expression_node).size, (yyvsp[-2].expression_node).sval, (yyvsp[0].expression_node).sval);
+                (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), "double-vector", (yyvsp[-2].expression_node).size};
+            }
+            else{
+                yyerror("mismatched dimensions");
+                exit(0);
+            }
+        }
+        else if (strcmp((yyvsp[-2].expression_node).type, "int-vector") == 0 && strcmp((yyvsp[0].expression_node).type, "int-vector") == 0){
+            if ((yyvsp[-2].expression_node).size == (yyvsp[0].expression_node).size){
+                char buffer[256];
+                snprintf(buffer, sizeof(buffer), "add_arrays_1d_int(%d, %s, %s)", (yyvsp[-2].expression_node).size, (yyvsp[-2].expression_node).sval, (yyvsp[0].expression_node).sval);
+                (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), "int-vector", (yyvsp[-2].expression_node).size};
+            }
+            else{
+                yyerror("mismatched dimensions");
+                exit(0);
+            }
+        }
+        // int int, double double, int double, double int
+        else if ((strcmp((yyvsp[-2].expression_node).type, "int") == 0 || strcmp((yyvsp[-2].expression_node).type, "double") == 0) && (strcmp((yyvsp[0].expression_node).type, "int") == 0 || strcmp((yyvsp[0].expression_node).type, "double") == 0)){
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "%s + %s", (yyvsp[-2].expression_node).sval, (yyvsp[0].expression_node).sval);
+            (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), typeCoercion((yyvsp[-2].expression_node).type, (yyvsp[0].expression_node).type), 1};
+        }
+        else {
+            yyerror("two argument types are not compatible");
+            exit(0);
+        }
     }
-#line 1666 "y.tab.c"
+#line 1760 "y.tab.c"
     break;
 
   case 21:
-#line 298 "parser.y"
+#line 392 "parser.y"
     {
         // printf("-\n");
         char buffer[256];
@@ -1674,11 +1768,11 @@ yyreduce:
         (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), typeCoercion((yyvsp[-2].expression_node).type, (yyvsp[0].expression_node).type), 1};
         // printf("buffer => %s, type => %s\n", buffer, $1.type);
     }
-#line 1678 "y.tab.c"
+#line 1772 "y.tab.c"
     break;
 
   case 22:
-#line 309 "parser.y"
+#line 403 "parser.y"
     {
         // printf("*\n");
         if (strcmp((yyvsp[-2].expression_node).type, "double-vector") == 0 && strcmp((yyvsp[0].expression_node).type, "double-vector") == 0){
@@ -1688,7 +1782,7 @@ yyreduce:
                 (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), "double", 1};
             }
             else{
-                yyerror("ERROR: mismatched dimensions");
+                yyerror("mismatched dimensions");
                 exit(0);
             }
         }
@@ -1699,7 +1793,7 @@ yyreduce:
                 (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), "int", 1};
             }
             else{
-                yyerror("ERROR: mismatched dimensions");
+                yyerror("mismatched dimensions");
                 exit(0);
             }
         }
@@ -1710,128 +1804,128 @@ yyreduce:
             (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), typeCoercion((yyvsp[-2].expression_node).type, (yyvsp[0].expression_node).type), 1};
         }
         else {
-            yyerror("ERROR: Two argument types are not compatible");
+            yyerror("Two argument types are not compatible");
             exit(0);
         }
     }
-#line 1718 "y.tab.c"
+#line 1812 "y.tab.c"
     break;
 
   case 23:
-#line 346 "parser.y"
+#line 440 "parser.y"
     {
         // printf("/\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s / %s", (yyvsp[-2].expression_node).sval, (yyvsp[0].expression_node).sval);
         (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), typeCoercion((yyvsp[-2].expression_node).type, (yyvsp[0].expression_node).type), 1};
     }
-#line 1729 "y.tab.c"
+#line 1823 "y.tab.c"
     break;
 
   case 24:
-#line 354 "parser.y"
+#line 448 "parser.y"
     {
         // printf("term - factor\n");
         (yyval.expression_node) = (struct ExpressionNode){(yyvsp[0].expression_node).sval, (yyvsp[0].expression_node).type, (yyvsp[0].expression_node).size};
     }
-#line 1738 "y.tab.c"
+#line 1832 "y.tab.c"
     break;
 
   case 25:
-#line 362 "parser.y"
+#line 456 "parser.y"
     {
         // printf("factor ( expression )\n");
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "( %s )", (yyvsp[-1].expression_node).sval);
         (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), (yyvsp[-1].expression_node).type, 1};
     }
-#line 1749 "y.tab.c"
+#line 1843 "y.tab.c"
     break;
 
   case 26:
-#line 370 "parser.y"
+#line 464 "parser.y"
     {
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "-%s", (yyvsp[0].expression_node).sval);
         (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), (yyvsp[0].expression_node).type, 1};
     }
-#line 1759 "y.tab.c"
+#line 1853 "y.tab.c"
     break;
 
   case 27:
-#line 377 "parser.y"
+#line 471 "parser.y"
     {
         // printf("factor - IDENTIFIER\n");
         // printf("id => %s\n", $1.sval);
         (yyval.expression_node) = (struct ExpressionNode){(yyvsp[0].node).sval, searchType((yyvsp[0].node).sval), searchSize((yyvsp[0].node).sval)};
         if ((yyval.expression_node).type == NULL || (yyval.expression_node).size == -1){
-            yyerror("ERROR: Not found the identifier\n");
+            yyerror("not found the identifier\n");
             exit(0);
         }
         // printf("done\n");
     }
-#line 1774 "y.tab.c"
+#line 1868 "y.tab.c"
     break;
 
   case 28:
-#line 389 "parser.y"
+#line 483 "parser.y"
     {
         // printf("factor - NUMBER\n");
         // printf("num => %s\n", $1.sval);
         // printf("type = %s\n", $1.type);
         (yyval.expression_node) = (struct ExpressionNode){(yyvsp[0].node).sval, (yyvsp[0].node).type, 1};
     }
-#line 1785 "y.tab.c"
+#line 1879 "y.tab.c"
     break;
 
   case 29:
-#line 397 "parser.y"
+#line 491 "parser.y"
     {
         // printf("factor - STRING_LITERAL ;\n");
         // printf("string => %s\n", $1.sval);
         (yyval.expression_node) = (struct ExpressionNode){(yyvsp[0].node).sval, (yyvsp[0].node).type, 1};
     }
-#line 1795 "y.tab.c"
+#line 1889 "y.tab.c"
     break;
 
   case 30:
-#line 404 "parser.y"
+#line 498 "parser.y"
     {
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "{ %s }", (yyvsp[-1].expression_node).sval);   
         (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), "vector", (yyvsp[-1].expression_node).size};
     }
-#line 1805 "y.tab.c"
+#line 1899 "y.tab.c"
     break;
 
   case 31:
-#line 413 "parser.y"
+#line 507 "parser.y"
     {
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s, %s", (yyvsp[-2].expression_node).sval, (yyvsp[0].expression_node).sval);
         (yyval.expression_node) = (struct ExpressionNode){strdup(buffer), strdup("vector"), (yyvsp[-2].expression_node).size + (yyvsp[0].expression_node).size};
     }
-#line 1815 "y.tab.c"
+#line 1909 "y.tab.c"
     break;
 
   case 32:
-#line 420 "parser.y"
+#line 514 "parser.y"
     {
         (yyval.expression_node) = (struct ExpressionNode){strdup((yyvsp[0].expression_node).sval), strdup((yyvsp[0].expression_node).type), (yyvsp[0].expression_node).size};
     }
-#line 1823 "y.tab.c"
+#line 1917 "y.tab.c"
     break;
 
   case 33:
-#line 424 "parser.y"
+#line 518 "parser.y"
     {
         (yyval.expression_node) = (struct ExpressionNode){"", "unknown", 0};
     }
-#line 1831 "y.tab.c"
+#line 1925 "y.tab.c"
     break;
 
 
-#line 1835 "y.tab.c"
+#line 1929 "y.tab.c"
 
       default: break;
     }
@@ -2063,7 +2157,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 428 "parser.y"
+#line 522 "parser.y"
 
 
 int main() {
@@ -2071,7 +2165,7 @@ int main() {
 }
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
+    fprintf(stderr, "ERROR: %s\n", s);
 }
 
 /* addSymbolTable(char* idName, char* type) */
