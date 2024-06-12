@@ -72,7 +72,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 45 "parser.y"
+#line 47 "parser.y"
 {
     int ival;
     float fval;

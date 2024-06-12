@@ -1,0 +1,8 @@
+fun main(){
+	val i : int = 10;
+	println(i); // output: 10
+	println(i+1); // output: 11
+	println(i-1); // output: 9
+	println(i*2); // output: 20
+	println(i/2); // output: 5
+}

@@ -1,0 +1,8 @@
+fun main(){
+	var i : int = 10;
+	{
+		var i : real = 12.5;
+		println(i); // output: 12.5
+	}
+	println(i); // output: 10
+}

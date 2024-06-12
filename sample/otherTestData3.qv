@@ -1,0 +1,7 @@
+fun myAdd(i: int, j: int): int {
+  ret i + j;
+}
+
+fun main() {
+  println(addition(3, 5)); // ERROR: not found the identifier
+}

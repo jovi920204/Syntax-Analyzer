@@ -31,6 +31,8 @@ void addSymbolTable(char* name, char* type, int size);
 char* searchType(char* name);
 int searchSize(char* name);
 int isExist(char* name);
+int isExistCurrentScope(char* name);
+char* searchTypeCurrentScope(char* name);
 void printSymbolTableStack();
 
 char* vectorFillZeros(const char* s, int size);
@@ -59,24 +61,20 @@ SymbolTable *symbolTableStack = NULL;
 
 %token <sval> FUN MAIN VAR VAL INT REAL PRINT PRINTLN RET
 %token <node> NUMBER IDENTIFIER STRING_LITERAL
-
-%type <sval> program functions function block declarations declaration type statements statement param_declarations param_declaration
+%type <sval> program functions function blocks block declarations declaration
+%type <sval> type statements statement param_declarations param_declaration
 %type <expression_node> expression vector term factor array_declaration
-/* %token T_INT */
-/* 先乘除後加減，且定義由左到右運算 */
-/* %left '+' '-'
-%left '*' '/' */
 
 %%
 program:
     { pushSymbolTable(); } functions
     {
-        { printSymbolTableStack(); popSymbolTable(); }
-        printf("-------------- Info --------------\n");
-        printf("| Compile Complete.              |\n");
-        printf("| Generating C code...           |\n");
-        printf("| Please checkout output.c file. |\n");
-        printf("----------------------------------\n");
+        { popSymbolTable(); }
+        printf("----------------- Info -----------------\n");
+        printf("| Compile Complete.                    |\n");
+        printf("| Generating C code...                 |\n");
+        printf("| Please checkout resultCheck.c file.  |\n");
+        printf("----------------------------------------\n");
         FILE *outputFile = fopen("checkResult.c", "w");
         if (outputFile == NULL) {
             fprintf(stderr, "Error opening output.c file\n");
@@ -113,7 +111,7 @@ functions:
 function:
     FUN MAIN '(' ')' '{'
         { pushSymbolTable(); }
-        block
+        blocks
     '}'
     {
         { popSymbolTable(); }
@@ -128,13 +126,13 @@ function:
     }
     |
     FUN IDENTIFIER { pushSymbolTable(); } '(' param_declarations ')' ':' type '{'
-        block
+        blocks
     '}'
     {
         { popSymbolTable(); }
         // printf("function %s\n", $2.sval);
-        if (isExist($2.sval)){
-            yyerror("ERROR: duplicate declaraction");
+        if (isExistCurrentScope($2.sval)){
+            yyerror("duplicate declaration");
             exit(0);
         }
         char* functionName = strdup($8);
@@ -170,7 +168,7 @@ param_declaration:
     IDENTIFIER ':' type
     {
         // printf("param_declaration\n");
-        if (isExist($1.sval)){
+        if (isExistCurrentScope($1.sval)){
             yyerror("duplicate declaration");
             exit(0);
         }
@@ -181,6 +179,24 @@ param_declaration:
     }
     ;
 
+blocks:
+    block
+    {
+        $$ = strdup($1);
+    }
+    |
+    block { pushSymbolTable(); } '{' blocks '}' { popSymbolTable(); } blocks
+    {
+        // printf("name scoping\n");
+        $$ = malloc(strlen($1) + strlen("    {\n    }\n") + strlen($4) + strlen($7) + 1);
+        strcpy($$, $1);
+        strcat($$, "    {\n");
+        strcat($$, $4);
+        strcat($$, "    }\n");
+        strcat($$, $7);
+    }
+    ;
+
 block:
     declarations statements
     {
@@ -188,15 +204,6 @@ block:
         $$ = malloc(strlen($1) + strlen($2) + 1);
         strcpy($$, $1);
         strcat($$, $2);
-    }
-    |
-    { pushSymbolTable(); } '{' block '}'
-    {
-        { popSymbolTable(); }
-        $$ = malloc(strlen("{\n}\n") + strlen($3) +1);
-        strcpy($$, "{\n");
-        strcat($$, $3);
-        strcat($$, "}\n");
     }
     ;
 
@@ -221,7 +228,7 @@ declaration:
     VAR IDENTIFIER ':' type '=' expression ';'
     {
         // printf("declaration1 %s\n", $4);
-        if (isExist($2.sval)){
+        if (isExistCurrentScope($2.sval)){
             yyerror("duplicate declaration");
             exit(0);
         }
@@ -235,7 +242,7 @@ declaration:
     VAR IDENTIFIER ':' type array_declaration '=' expression ';'
     {
         // printf("declaration - VAR IDENTIFIER ':' type array_declaration '=' expression ';' %s\n", $4);
-        if (isExist($2.sval)){
+        if (isExistCurrentScope($2.sval)){
             yyerror("duplicate declaration");
             exit(0);
         }
@@ -260,7 +267,7 @@ declaration:
     VAR IDENTIFIER ':' type ';'
     {
         // printf("declaration2\n");
-        if (isExist($2.sval)){
+        if (isExistCurrentScope($2.sval)){
             yyerror("duplicate declaration");
             exit(0);
         }
@@ -274,7 +281,7 @@ declaration:
     VAR IDENTIFIER ':' type array_declaration ';'
     {
         // printf("declaration2\n");
-        if (isExist($2.sval)){
+        if (isExistCurrentScope($2.sval)){
             yyerror("duplicate declaration");
             exit(0);
         }
@@ -288,7 +295,7 @@ declaration:
     VAL IDENTIFIER ':' type ';'
     {
         // printf("declaration VAL IDENTIFIER : type ;\n");
-        if (isExist($2.sval)){
+        if (isExistCurrentScope($2.sval)){
             yyerror("duplicate declaration");
             exit(0);
         }
@@ -301,7 +308,7 @@ declaration:
     |
     VAL IDENTIFIER ':' type '=' expression ';'
     {
-        if (isExist($2.sval)){
+        if (isExistCurrentScope($2.sval)){
             yyerror("duplicate declaration");
             exit(0);
         }
@@ -378,26 +385,27 @@ statement:
     {
         // printf("statement - PRINT ( expression ) ;\n");
         char buffer[256];
-        if (strcmp($3.type, "int") == 0 || strcmp($3.type, "const-int") == 0){
+        char* typeName = searchTypeCurrentScope($3.sval);
+        if (strcmp(typeName, "int") == 0 || strcmp(typeName, "const-int") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", $3.sval);
         }
-        else if (strcmp($3.type, "double") == 0 || strcmp($3.type, "const-double") == 0){
+        else if (strcmp(typeName, "double") == 0 || strcmp(typeName, "const-double") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%g\", %s);\n", $3.sval);
         }
-        else if (strcmp($3.type, "string") == 0){
+        else if (strcmp(typeName, "string") == 0){
             // printf("PRINT string\n");
             snprintf(buffer, sizeof(buffer), "    printf(\"%s\");\n", $3.sval);
         }
-        else if (strcmp($3.type, "int-vector") == 0){
+        else if (strcmp(typeName, "int-vector") == 0){
             snprintf(buffer, sizeof(buffer), "    print_1d_int(%d, %s, 0);\n", $3.size, $3.sval);
         }
-        else if (strcmp($3.type, "double-vector") == 0){
+        else if (strcmp(typeName, "double-vector") == 0){
             snprintf(buffer, sizeof(buffer), "    print_1d_double(%d, %s, 0);\n", $3.size, $3.sval);
         }
-        else if (strcmp($3.type, "int-function") == 0){
+        else if (strcmp(typeName, "int-function") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", $3.sval);
         }
-        else if (strcmp($3.type, "double-function") == 0){
+        else if (strcmp(typeName, "double-function") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%g\", %s);\n", $3.sval);
         }
         else {
@@ -409,27 +417,28 @@ statement:
     PRINTLN '(' expression ')' ';'
     {
         // printf("statement - PRINTLN ( expression ) ;\n");
-        // printf("type => %s\n", $3.type);
+        // printf("type => %s\n", typeName);
         char buffer[256];
-        if (strcmp($3.type, "int") == 0 || strcmp($3.type, "const-int") == 0){
+        char* typeName = searchTypeCurrentScope($3.sval);
+        if (strcmp(typeName, "int") == 0 || strcmp(typeName, "const-int") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
         }
-        else if (strcmp($3.type, "double") == 0 || strcmp($3.type, "const-double") == 0){
+        else if (strcmp(typeName, "double") == 0 || strcmp(typeName, "const-double") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%g\\n\", %s);\n", $3.sval);
         }
-        else if (strcmp($3.type, "string") == 0){
+        else if (strcmp(typeName, "string") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%s\\n\");\n", $3.sval);
         }
-        else if (strcmp($3.type, "int-vector") == 0){
+        else if (strcmp(typeName, "int-vector") == 0){
             snprintf(buffer, sizeof(buffer), "    print_1d_int(%d, %s, 1);\n", $3.size, $3.sval);
         }
-        else if (strcmp($3.type, "double-vector") == 0){
+        else if (strcmp(typeName, "double-vector") == 0){
             snprintf(buffer, sizeof(buffer), "    print_1d_double(%d, %s, 1);\n", $3.size, $3.sval);
         }
-        else if (strcmp($3.type, "int-function") == 0){
+        else if (strcmp(typeName, "int-function") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
         }
-        else if (strcmp($3.type, "double-function") == 0){
+        else if (strcmp(typeName, "double-function") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%g\\n\", %s);\n", $3.sval);
         }
         else {
@@ -486,7 +495,7 @@ expression:
             $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
         }
         else {
-            yyerror("two argument types are not compatible");
+            yyerror("two variables types are not compatible");
             exit(0);
         }
     }
@@ -501,7 +510,7 @@ expression:
             // printf("buffer => %s, type => %s\n", buffer, $1.type);
         }
         else {
-            yyerror("two argument types are not compatible");
+            yyerror("two variables types are not compatible");
             exit(0);
         }
     }
@@ -540,7 +549,7 @@ term:
             $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
         }
         else {
-            yyerror("Two argument types are not compatible");
+            yyerror("two variables types are not compatible");
             exit(0);
         }
     }
@@ -554,7 +563,7 @@ term:
             $$ = (struct ExpressionNode){strdup(buffer), typeCoercion($1.type, $3.type), 1};
         }
         else{
-            yyerror("Two argument types are not compatible");
+            yyerror("two variables types are not compatible");
             exit(0);
         }
     }
@@ -734,6 +743,30 @@ int isExist(char* name) {
         }
     }
     return 0;
+}
+
+int isExistCurrentScope(char* name) {
+    if (symbolTableStack == NULL) {
+        return 0;
+    }
+    for (int i = 0; i < symbolTableStack->top; i++) {
+        if (strcmp(symbolTableStack->symbols[i].idName, name) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+char* searchTypeCurrentScope(char* name) {
+    if (symbolTableStack == NULL) {
+        return NULL;
+    }
+    for (int i = 0; i < symbolTableStack->top; i++) {
+        if (strcmp(symbolTableStack->symbols[i].idName, name) == 0) {
+            return symbolTableStack->symbols[i].type;
+        }
+    }
+    return NULL;
 }
 
 void printSymbolTableStack() {

@@ -41,7 +41,7 @@ TERMINAL    (";"|","|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"=")
                           yylval.node.type = strdup("string");
                           return (STRING_LITERAL);
                         }
-<STRINGS>[\\][\\]        { strcat(strbuffer, "\\"); }
+<STRINGS>[\\][\\]       { strcat(strbuffer, "\\"); }
 <STRINGS>[\\][n]        { strcat(strbuffer, "\\n"); }
 <STRINGS>[\\][t]        { strcat(strbuffer, "\t"); }
 <STRINGS>[\\][']        { strcat(strbuffer, "\'"); }

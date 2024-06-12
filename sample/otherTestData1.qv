@@ -1,6 +1,6 @@
 fun main(){
     var i: int = 10;
-    var j: real = 11;
+    var j: real = 15;
     var k: int;
     k = i + j;
     println(k);

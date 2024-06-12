@@ -1,5 +1,3 @@
-# Makefile for building the syntax analyzer using Bison and Flex
-
 # Compiler and flags
 CC = gcc
 CFLAGS = -ll
