@@ -2,11 +2,54 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "y.tab.h"
-#include "type.h"
 
 char strbuffer[1000];
 int line_no = 1;
 void yyerror(const char *s);
+
+#define T_VAR                0
+#define T_VAL                1
+#define T_BOOL               2
+#define T_CHAR               3
+#define T_REAL               5
+#define T_TRUE               6
+#define T_FALSE              7
+#define T_CLASS              8
+#define T_IF                 9
+#define T_ELSE               10
+#define T_FOR                11
+#define T_WHILE              12
+#define T_DO                 13
+#define T_SWITCH             14
+#define T_CASE               15
+#define T_FUN                16
+#define T_RET                17
+#define T_OPERATOR           18
+#define T_MINUS              19
+#define T_SINGLE_QUOTE       20
+#define T_DOUBLE_QUOTE       21
+#define T_LEFT_PARENTHESE    22
+#define T_RIGHT_PARENTHESE   23
+#define T_LEFT_BRACKET       24
+#define T_RIGHT_BRACKET      25
+#define T_LEFT_BRACE         26
+#define T_RIGHT_BRACE        27
+#define T_ASIGN              28
+#define T_EQUAL_CMP          29
+#define T_INEQUAL_CMP        30
+#define T_LARGER_THAN        31
+#define T_SMALLER_THAN       32
+#define T_LARGER_EQUAL       33
+#define T_SMALLER_EQUAL      34
+#define T_ESCAPE_SEQUENCE    35
+#define T_COMMA              36
+#define T_COLON              37
+#define T_SEMI               38
+#define T_INT_CONST          39
+#define T_REAL_CONST         40
+#define T_CHAR_CONST         41
+#define T_ID                 42
+#define T_STRING             43
 
 %}
 

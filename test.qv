@@ -1,6 +1,0 @@
-fun main () {
-	var i: int = 1;
-	var j: int = 2;
-	var a: int[1+2] = {};
-	println(a);
-}

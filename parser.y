@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "type.h"
 #define MAX_SYMBOL_TABLE_SIZE 40
 #define HASH_SIZE 101
 
@@ -78,7 +77,7 @@ program:
         FILE *outputFile = fopen("checkResult.c", "w");
         if (outputFile == NULL) {
             fprintf(stderr, "Error opening output.c file\n");
-            exit(EXIT_FAILURE);
+            exit(0);
         }
         fprintf(outputFile, "#include <stdio.h>\n");
         fprintf(outputFile, "#include <stdlib.h>\n");
