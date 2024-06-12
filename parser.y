@@ -385,7 +385,7 @@ statement:
     {
         // printf("statement - PRINT ( expression ) ;\n");
         char buffer[256];
-        char* typeName = searchTypeCurrentScope($3.sval);
+        char* typeName = $3.type;
         if (strcmp(typeName, "int") == 0 || strcmp(typeName, "const-int") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", $3.sval);
         }
@@ -419,7 +419,7 @@ statement:
         // printf("statement - PRINTLN ( expression ) ;\n");
         // printf("type => %s\n", typeName);
         char buffer[256];
-        char* typeName = searchTypeCurrentScope($3.sval);
+        char* typeName = $3.type;
         if (strcmp(typeName, "int") == 0 || strcmp(typeName, "const-int") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\\n\", %s);\n", $3.sval);
         }
@@ -595,7 +595,7 @@ factor:
     {
         // printf("factor - IDENTIFIER\n");
         // printf("id => %s\n", $1.sval);
-        $$ = (struct ExpressionNode){$1.sval, searchType($1.sval), searchSize($1.sval)};
+        $$ = (struct ExpressionNode){$1.sval, searchTypeCurrentScope($1.sval), searchSize($1.sval)};
         if ($$.type == NULL || $$.size == -1){
             yyerror("not found the identifier\n");
             exit(0);

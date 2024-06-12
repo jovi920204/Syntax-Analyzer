@@ -501,9 +501,9 @@ static const yytype_uint16 yyrline[] =
        0,    70,    70,    70,    99,   103,   113,   112,   128,   128,
      149,   153,   161,   168,   183,   188,   188,   188,   201,   212,
      217,   228,   242,   267,   281,   295,   309,   324,   330,   345,
-     355,   360,   370,   384,   417,   450,   460,   466,   503,   520,
-     557,   571,   579,   587,   594,   606,   614,   621,   628,   641,
-     648,   653
+     355,   360,   370,   384,   421,   454,   464,   470,   507,   524,
+     561,   575,   583,   591,   598,   610,   618,   625,   632,   645,
+     652,   657
 };
 #endif
 
@@ -1527,13 +1527,13 @@ yyreduce:
 
   case 6:
 #line 113 "parser.y"
-    { pushSymbolTable(); }
+    { printf("push\n"); pushSymbolTable(); }
     break;
 
   case 7:
 #line 116 "parser.y"
     {
-        { popSymbolTable(); }
+        { printf("pop\n"); popSymbolTable(); }
         // printf("function main\n");
         // printf("%s\n", $7);
         char buffer[256];
@@ -1616,12 +1616,12 @@ yyreduce:
 
   case 15:
 #line 188 "parser.y"
-    { pushSymbolTable(); }
+    { printf("push\n"); pushSymbolTable(); }
     break;
 
   case 16:
 #line 188 "parser.y"
-    { popSymbolTable(); }
+    { printf("pop\n"); popSymbolTable(); }
     break;
 
   case 17:
@@ -1835,11 +1835,15 @@ yyreduce:
     {
         // printf("statement - PRINT ( expression ) ;\n");
         char buffer[256];
-        char* typeName = searchTypeCurrentScope((yyvsp[(3) - (5)].expression_node).sval);
+        char* typeName = (yyvsp[(3) - (5)].expression_node).type;
+        // printf("type => %s, %s\n", $$.sval, $$.type);
+
+        printf("type => %s\n", typeName);
         if (strcmp(typeName, "int") == 0 || strcmp(typeName, "const-int") == 0){
             snprintf(buffer, sizeof(buffer), "    printf(\"%%d\", %s);\n", (yyvsp[(3) - (5)].expression_node).sval);
         }
         else if (strcmp(typeName, "double") == 0 || strcmp(typeName, "const-double") == 0){
+        printf("123123\n");
             snprintf(buffer, sizeof(buffer), "    printf(\"%%g\", %s);\n", (yyvsp[(3) - (5)].expression_node).sval);
         }
         else if (strcmp(typeName, "string") == 0){
@@ -1866,7 +1870,7 @@ yyreduce:
     break;
 
   case 34:
-#line 418 "parser.y"
+#line 422 "parser.y"
     {
         // printf("statement - PRINTLN ( expression ) ;\n");
         // printf("type => %s\n", typeName);
@@ -1901,7 +1905,7 @@ yyreduce:
     break;
 
   case 35:
-#line 451 "parser.y"
+#line 455 "parser.y"
     {
         // printf("statement - RET expression\n");
         char buffer[256];
@@ -1911,7 +1915,7 @@ yyreduce:
     break;
 
   case 36:
-#line 461 "parser.y"
+#line 465 "parser.y"
     {
         // printf("expression term\n");
         (yyval.expression_node) = (struct ExpressionNode){(yyvsp[(1) - (1)].expression_node).sval, (yyvsp[(1) - (1)].expression_node).type, (yyvsp[(1) - (1)].expression_node).size};
@@ -1919,7 +1923,7 @@ yyreduce:
     break;
 
   case 37:
-#line 467 "parser.y"
+#line 471 "parser.y"
     {  
         // printf("+\n");
         if (strcmp((yyvsp[(1) - (3)].expression_node).type, "double-vector") == 0 && strcmp((yyvsp[(3) - (3)].expression_node).type, "double-vector") == 0){
@@ -1958,7 +1962,7 @@ yyreduce:
     break;
 
   case 38:
-#line 504 "parser.y"
+#line 508 "parser.y"
     {
         // printf("-\n");
         if (arithmeticTypeChecking((yyvsp[(1) - (3)].expression_node).type, (yyvsp[(3) - (3)].expression_node).type)){
@@ -1975,7 +1979,7 @@ yyreduce:
     break;
 
   case 39:
-#line 521 "parser.y"
+#line 525 "parser.y"
     {
         // printf("*\n");
         if (strcmp((yyvsp[(1) - (3)].expression_node).type, "double-vector") == 0 && strcmp((yyvsp[(3) - (3)].expression_node).type, "double-vector") == 0){
@@ -2014,7 +2018,7 @@ yyreduce:
     break;
 
   case 40:
-#line 558 "parser.y"
+#line 562 "parser.y"
     {
         // printf("/\n");
         if (arithmeticTypeChecking((yyvsp[(1) - (3)].expression_node).type, (yyvsp[(3) - (3)].expression_node).type)){
@@ -2030,7 +2034,7 @@ yyreduce:
     break;
 
   case 41:
-#line 572 "parser.y"
+#line 576 "parser.y"
     {
         // printf("term - factor\n");
         (yyval.expression_node) = (struct ExpressionNode){(yyvsp[(1) - (1)].expression_node).sval, (yyvsp[(1) - (1)].expression_node).type, (yyvsp[(1) - (1)].expression_node).size};
@@ -2038,7 +2042,7 @@ yyreduce:
     break;
 
   case 42:
-#line 580 "parser.y"
+#line 584 "parser.y"
     {
         // printf("factor ( expression )\n");
         char buffer[256];
@@ -2048,7 +2052,7 @@ yyreduce:
     break;
 
   case 43:
-#line 588 "parser.y"
+#line 592 "parser.y"
     {
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "-%s", (yyvsp[(2) - (2)].expression_node).sval);
@@ -2057,11 +2061,11 @@ yyreduce:
     break;
 
   case 44:
-#line 595 "parser.y"
+#line 599 "parser.y"
     {
         // printf("factor - IDENTIFIER\n");
         // printf("id => %s\n", $1.sval);
-        (yyval.expression_node) = (struct ExpressionNode){(yyvsp[(1) - (1)].node).sval, searchType((yyvsp[(1) - (1)].node).sval), searchSize((yyvsp[(1) - (1)].node).sval)};
+        (yyval.expression_node) = (struct ExpressionNode){(yyvsp[(1) - (1)].node).sval, searchTypeCurrentScope((yyvsp[(1) - (1)].node).sval), searchSize((yyvsp[(1) - (1)].node).sval)};
         if ((yyval.expression_node).type == NULL || (yyval.expression_node).size == -1){
             yyerror("not found the identifier\n");
             exit(0);
@@ -2071,7 +2075,7 @@ yyreduce:
     break;
 
   case 45:
-#line 607 "parser.y"
+#line 611 "parser.y"
     {
         // printf("factor - NUMBER\n");
         // printf("num => %s\n", $1.sval);
@@ -2081,7 +2085,7 @@ yyreduce:
     break;
 
   case 46:
-#line 615 "parser.y"
+#line 619 "parser.y"
     {
         // printf("factor - STRING_LITERAL ;\n");
         // printf("string => %s\n", $1.sval);
@@ -2090,7 +2094,7 @@ yyreduce:
     break;
 
   case 47:
-#line 622 "parser.y"
+#line 626 "parser.y"
     {
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "{ %s }", (yyvsp[(2) - (3)].expression_node).sval);   
@@ -2099,7 +2103,7 @@ yyreduce:
     break;
 
   case 48:
-#line 629 "parser.y"
+#line 633 "parser.y"
     {
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s( %s )", (yyvsp[(1) - (4)].node).sval, (yyvsp[(3) - (4)].expression_node).sval);   
@@ -2112,7 +2116,7 @@ yyreduce:
     break;
 
   case 49:
-#line 642 "parser.y"
+#line 646 "parser.y"
     {
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "%s, %s", (yyvsp[(1) - (3)].expression_node).sval, (yyvsp[(3) - (3)].expression_node).sval);
@@ -2121,14 +2125,14 @@ yyreduce:
     break;
 
   case 50:
-#line 649 "parser.y"
+#line 653 "parser.y"
     {
         (yyval.expression_node) = (struct ExpressionNode){strdup((yyvsp[(1) - (1)].expression_node).sval), strdup((yyvsp[(1) - (1)].expression_node).type), (yyvsp[(1) - (1)].expression_node).size};
     }
     break;
 
   case 51:
-#line 653 "parser.y"
+#line 657 "parser.y"
     {
         (yyval.expression_node) = (struct ExpressionNode){"", "unknown", 0};
     }
@@ -2136,7 +2140,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 2140 "y.tab.c"
+#line 2144 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2350,7 +2354,7 @@ yyreturn:
 }
 
 
-#line 657 "parser.y"
+#line 661 "parser.y"
 
 
 int main() {

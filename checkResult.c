@@ -8,7 +8,11 @@ double* add_arrays_1d_double(int size, double* arr1, double* arr2) {double* resu
 void print_1d_int(int size, int* result, bool isNewline){printf("{ ");for (int i=0;i<size;i++){if (i == size-1) printf("%d }", result[i]);else printf("%d, ", result[i]);}if (isNewline) printf("\n");}
 void print_1d_double(int size, double* result, bool isNewline){printf("{ ");for (int i=0;i<size;i++){if (i == size-1) printf("%g }", result[i]);else printf("%g, ", result[i]);}if (isNewline) printf("\n");}
 int main() {
-    int i = 1;
-    int j = 2;
-    int a[1+2] = { 0 };
+    double i = 1.5;
+    double j = 3.14;
+    double k = 2.8;
+    printf("%g", i + j * k);
+    printf("\n");
+    printf("%g", i * ( j + k ));
+    printf("\n");
 }
